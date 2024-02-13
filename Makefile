@@ -1,22 +1,16 @@
-install: install-deps
-	npx simple-git-hooks
+develop:
+	npx webpack serve
 
-run:
-	bin/rss-agregator.js
-
-install-deps:
+install:
 	npm ci
+
+build:
+	NODE_ENV=production npx webpack
 
 test:
 	npm test
 
-test-coverage:
-	npm test -- --coverage --coverageProvider=v8
-
 lint:
 	npx eslint .
-
-publish:
-	npm-publish --dry-run
 
 .PHONY: test
