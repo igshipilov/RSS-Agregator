@@ -8,5 +8,6 @@ parserOptions:
   sourceType: module
 rules: {
   eqeqeq: off,
-  no-console: off
+  no-console: off,
+  import/extensions: off
 }
