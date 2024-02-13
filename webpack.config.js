@@ -63,7 +63,7 @@ module.exports = () => {
 
   if (!isProduction) {
     config.devServer = {
-      port: process.env.PORT ||  8080, // Use PORT environment variable or fallback to  8080
+      port: process.env.PORT || 8080, // Use PORT environment variable or fallback to  8080
     };
   }
 
