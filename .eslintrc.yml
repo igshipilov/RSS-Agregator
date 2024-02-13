@@ -1,6 +1,7 @@
 env:
   browser: true
   es2021: true
+  jest: true
 extends: airbnb-base
 parserOptions:
   ecmaVersion: latest
@@ -9,5 +10,3 @@ rules: {
   eqeqeq: off,
   no-console: off
 }
-env:
-  jest: true
