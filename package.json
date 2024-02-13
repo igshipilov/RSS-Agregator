@@ -1,0 +1,40 @@
+{
+  "name": "@hexlet/code",
+  "version": "0.0.1",
+  "description": "RSS-agregator",
+  "bin": {
+    "rss-agregator": "bin/rss-agregator.js"
+  },
+  "simple-git-hooks": {
+    "pre-push": "make lint"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "test": "npx jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/igshipilov/frontend-project-11.git"
+  },
+  "author": "Igor Shipilov",
+  "license": "ISC",
+  "type": "module",
+  "homepage": "https://github.com/igshipilov/frontend-project-11#readme",
+  "dependencies": {
+    "debug": "^4.3.4",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.6.0",
+    "eslint": "^8.56.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jest": "^27.2.2",
+    "jest": "^29.6.0",
+    "jest-cli": "^29.6.0",
+    "npm-check-updates": "^16.10.11",
+    "simple-git-hooks": "^2.8.1"
+  }
+}
