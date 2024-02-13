@@ -12,7 +12,8 @@
     "node": ">=14"
   },
   "scripts": {
-    "test": "npx jest"
+    "test": "npx jest",
+    "start": "webpack serve"
   },
   "jest": {
     "verbose": true

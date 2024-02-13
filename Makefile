@@ -1,3 +1,6 @@
+# build:
+# 	make install && make build
+
 develop:
 	npx webpack serve
 
@@ -6,6 +9,9 @@ install:
 
 build:
 	NODE_ENV=production npx webpack
+
+start:
+	webpack serve
 
 test:
 	npm test
