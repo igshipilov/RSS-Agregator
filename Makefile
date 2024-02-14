@@ -11,9 +11,6 @@ build:
 	rm -rf dist
 	NODE_ENV=production npx webpack
 
-start:
-	webpack serve
-
 test:
 	npm test
 
