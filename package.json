@@ -8,9 +8,6 @@
   "simple-git-hooks": {
     "pre-push": "make lint"
   },
-  "engines": {
-    "node": ">=14"
-  },
   "scripts": {
     "test": "npx jest",
     "start": "webpack serve"
