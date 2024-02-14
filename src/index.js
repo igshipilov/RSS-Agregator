@@ -1,7 +1,7 @@
 import './styles.scss';
-import  'bootstrap';
+import 'bootstrap';
 // import init from './init.js';
 
 // init();
 
-console.log('TEST from index.js')
+console.log('TEST from index.js');
