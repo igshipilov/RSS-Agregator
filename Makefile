@@ -1,6 +1,3 @@
-# build:
-# 	make install && make build
-
 develop:
 	npx webpack serve
 

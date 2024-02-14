@@ -1,5 +1,7 @@
 /node_modules/
 /.tmp/
 *.log
+dist
+assets
 coverage
 .DS_Store
