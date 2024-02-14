@@ -8,10 +8,6 @@ export default () => {
 };
 // --------------------
 
-
-
-
-
 // ------- v4 ---------
 // import { fileURLToPath } from 'url';
 // import { dirname } from 'path';
@@ -20,7 +16,6 @@ export default () => {
 
 // const __filename = fileURLToPath(import.meta.url);
 // const __dirname = dirname(__filename);
-
 
 // const app = express()
 // const port = process.env.PORT || 4000;
@@ -33,8 +28,6 @@ export default () => {
 //   console.log(`Example app listening on port ${port}`)
 // })
 // --------------------
-
-
 
 // ------- v3 ---------
 // const express = require('express');
@@ -50,7 +43,6 @@ export default () => {
 //   console.log(`Example app listening on port ${port}`);
 // });
 // --------------------
-
 
 // ------- v2 ---------
 // const express = require('express');
