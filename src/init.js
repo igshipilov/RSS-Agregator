@@ -1,8 +1,9 @@
+/* eslint-disable no-param-reassign, no-console, func-names  */
+
 import * as yup from 'yup';
 import onChange from 'on-change';
 
 /*
-
 
 ФИДЫ ДЛЯ ТЕСТОВ
 ✅ Рабочие:
@@ -13,27 +14,23 @@ https://buzzfeed.com/world.xml
 lorem-rss.hexlet.app/feed
 buzzfeed.com/world.xml
 
-
-
 ---
-
 
 */
 
-const render = (elements, initialState) => (path, value) => {
+const render = (elements) => (path, value) => {
   console.log('RENDER >> path:', path, '>> value:', value); // debug
   switch (path) {
     case 'uiState.isValid':
       // const input = elements.input;
       if (value === false) {
         elements.input.classList.add('is-invalid');
-      };
+      }
       if (value === true) {
         elements.input.classList.remove('is-invalid');
-
-      };
+      }
       break;
-    
+
     case 'urls':
       elements.input.value = '';
       elements.input.focus();
@@ -44,20 +41,18 @@ const render = (elements, initialState) => (path, value) => {
       break;
 
     case 'uiState.error':
-      const currentValue = value; // debug
-
       elements.textFeedback.classList.remove('text-success');
       elements.textFeedback.classList.add('text-danger');
       if (value === 'exists') {
         elements.textFeedback.textContent = 'RSS уже существует';
       } else if (value === 'incorrect') {
         elements.textFeedback.textContent = 'Ссылка должна быть валидным URL';
-      };
+      }
       break;
-  };
+    default:
+      throw new Error(`Unknown path: ${path}`);
+  }
 };
-
-
 
 const start = () => {
   const initialState = {
@@ -70,7 +65,6 @@ const start = () => {
   };
   console.log('>> initialState:', initialState);
 
-
   const elements = {
     form: document.querySelector('.rss-form'),
     input: document.querySelector('#url-input'),
@@ -78,19 +72,16 @@ const start = () => {
     textFeedback: document.querySelector('.feedback'),
   };
 
-
   const state = onChange(initialState, render(elements, initialState));
 
   const schema = yup.string()
-  .trim()
-  .url()
-  .test('not-one-of', 'URL already exists', function(value) {
-    const { urls } = this.options;
-    const result = !urls.includes(value); // debug
-    return !urls.includes(value);
-  })
-  .required();
-
+    .trim()
+    .url()
+    .test('not-one-of', 'URL already exists', function (value) {
+      const { urls } = this.options;
+      return !urls.includes(value);
+    })
+    .required();
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -112,30 +103,17 @@ const start = () => {
           state.uiState.error = 'incorrect';
         } else if (error.errors.includes('URL already exists')) { // FIXME -- Какая ошибка возникает при триггере notOneOf() ?
           state.uiState.error = 'exists';
-        };
+        }
       });
 
     console.log(`>> user sent: ${submittedUrl}`); // debug
     console.log('>> state after user input:', initialState); // debug
-
   });
 
   return initialState;
 };
 
 export default start;
-
-
-
-
-
-
-
-
-
-
-
-
 
 /*
 // --- шпаргалка ---
@@ -160,8 +138,6 @@ const validate = (fields) => {
     return keyBy(e.inner, 'path');
   }
 };
-
-
 
 // Валидацию дублей проверяем с помощью .notOneOf():
 // const schema = yup.object().shape({ inputValue: string().notOneOf(loadedFeeds, t('urlExist')) })
