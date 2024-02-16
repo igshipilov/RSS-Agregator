@@ -4,6 +4,7 @@ import i18next from 'i18next';
 import * as yup from 'yup';
 import onChange from 'on-change';
 import resources from './locales/index.js';
+import initialRender from '../bin/initialRender.js';
 import render from '../bin/render.js';
 
 /*
@@ -23,6 +24,7 @@ export default () => {
   const defaultLanguage = 'ru';
 
   const i18nInstance = i18next.createInstance();
+
   i18nInstance.init({
     lng: defaultLanguage,
     debug: false,
@@ -40,11 +42,21 @@ export default () => {
   console.log('>> initialState:', initialState); // debug
 
   const elements = {
+    titles: {
+      title: document.querySelector('.display-3'),
+      subtitle: document.querySelector('.lead'),
+    },
+    formPlaceholder: document.querySelector('[for="url-input"]'),
+    buttons: {
+      add: document.querySelector('[aria-label="add"]'),
+    },
     form: document.querySelector('.rss-form'),
     input: document.querySelector('#url-input'),
     textHint: document.querySelector('.text-muted'),
     textFeedback: document.querySelector('.feedback'),
   };
+
+  initialRender(elements, i18nInstance);
 
   const state = onChange(initialState, render(elements, initialState));
 
@@ -81,6 +93,4 @@ export default () => {
     console.log(`>> user sent: ${submittedUrl}`); // debug
     console.log('>> state after user input:', initialState); // debug
   });
-
-  render(initialState, elements);
 };
