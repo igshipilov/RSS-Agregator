@@ -35,11 +35,12 @@ export default () => {
   const initialState = {
     uiState: {
       isValid: null,
-      state: null, // error message from yup
+      state: null, // error key from yup, to access it from i18next in View
     },
     processAdd: 'filling', // 'sending', 'sent', 'error'
     urls: [],
   };
+  // console.log('>> initialState:', initialState); // debug
 
   const elements = {
     titles: {
@@ -58,24 +59,18 @@ export default () => {
 
   initialRender(elements, i18nInstance);
 
-  const state = onChange(initialState, render(elements, initialState));
+  const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
   setLocale({
-    url: ({ url }) => ({ key: 'feedback.invalidUrl', values: { url } }),
-
-    // url: {
-    //   invalid: ({ value }) => ({ key: 'feedback.invalidUrl', values: { value }})
-    // },
-
-    // url: {
-    //   default: i18nInstance.t('feedback.invalidUrl'),
-    // },
+    string: {
+      url: () => ({ key: 'feedback.invalidUrl' }),
+    },
   });
 
   const schema = yup.string()
     .trim()
     .url()
-    .test('not-one-of', i18nInstance.t('feedback.alreadyExists'), function (value) {
+    .test('not-one-of', { key: 'feedback.alreadyExists' }, function (value) {
       const { urls } = this.options;
       return !urls.includes(value);
     })
@@ -88,16 +83,31 @@ export default () => {
     const submittedUrl = formData.get('url');
     schema.validate(submittedUrl, { urls: initialState.urls })
       .then(() => {
-        initialState.uiState.state = i18nInstance.t('feedback.success');
+        initialState.uiState.state = 'feedback.success';
         initialState.urls.push(submittedUrl);
         state.uiState.isValid = true;
       })
       .catch((error) => {
+        // console.log('>> error:'); // debug
+        // console.log(JSON.parse(JSON.stringify(error))); // debug
         initialState.uiState.state = error.errors.map((curErr) => i18nInstance.t(curErr.key));
+        // --- Чтобы эти логи работил, оберни колбэк мэпа в {} ---
+        // console.log('>>>> currentErr:');
+        // console.log(currentErr);
+
+        // console.log('>>>> i18nInstance.t(currentErr.key):');
+        // console.log(i18nInstance.t(currentErr.key));
+        // -------------------------------------------------------
 
         // сбрасываю статус на null, чтобы рендерилась ошибка, идущая подряд
         initialState.uiState.isValid = null;
         state.uiState.isValid = false;
+
+        // console.log('>> catched error:', error); // debug
+        // console.log('>> catched error.errors:', error.errors); // debug
       });
+
+    // console.log(`>> user sent: ${submittedUrl}`); // debug
+    // console.log('>> state after user input:', initialState); // debug
   });
 };
