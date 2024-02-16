@@ -18,7 +18,7 @@ const handleFeedback = (elements, initialState, value) => {
 };
 
 export default (elements, initialState) => (path, value) => {
-  console.log('RENDER >> path:', path, '>> value:', value); // debug
+  // console.log('RENDER >> path:', path, '>> value:', value); // debug
   switch (path) {
     case 'uiState.isValid':
       handleFeedback(elements, initialState, value);

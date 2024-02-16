@@ -2,6 +2,7 @@
 
 import i18next from 'i18next';
 import * as yup from 'yup';
+import { setLocale } from 'yup';
 import onChange from 'on-change';
 import resources from './locales/index.js';
 import initialRender from '../bin/initialRender.js';
@@ -39,7 +40,6 @@ export default () => {
     processAdd: 'filling', // 'sending', 'sent', 'error'
     urls: [],
   };
-  console.log('>> initialState:', initialState); // debug
 
   const elements = {
     titles: {
@@ -60,9 +60,21 @@ export default () => {
 
   const state = onChange(initialState, render(elements, initialState));
 
+  setLocale({
+    url: ({ url }) => ({ key: 'feedback.invalidUrl', values: { url } }),
+
+    // url: {
+    //   invalid: ({ value }) => ({ key: 'feedback.invalidUrl', values: { value }})
+    // },
+
+    // url: {
+    //   default: i18nInstance.t('feedback.invalidUrl'),
+    // },
+  });
+
   const schema = yup.string()
     .trim()
-    .url(i18nInstance.t('feedback.invalidUrl'))
+    .url()
     .test('not-one-of', i18nInstance.t('feedback.alreadyExists'), function (value) {
       const { urls } = this.options;
       return !urls.includes(value);
@@ -81,16 +93,11 @@ export default () => {
         state.uiState.isValid = true;
       })
       .catch((error) => {
-        initialState.uiState.state = error.errors;
+        initialState.uiState.state = error.errors.map((curErr) => i18nInstance.t(curErr.key));
+
         // сбрасываю статус на null, чтобы рендерилась ошибка, идущая подряд
         initialState.uiState.isValid = null;
         state.uiState.isValid = false;
-
-        console.log('>> catched error:', error); // debug
-        console.log('>> catched error.errors:', error.errors); // debug
       });
-
-    console.log(`>> user sent: ${submittedUrl}`); // debug
-    console.log('>> state after user input:', initialState); // debug
   });
 };
