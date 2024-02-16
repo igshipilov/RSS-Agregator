@@ -71,7 +71,7 @@ export default () => {
       .catch((error) => {
         initialState.uiState.state = error.errors;
         // сбрасываю статус на null, чтобы рендерилась ошибка, идущая подряд
-        initialState.uiState.isValid = null;  
+        initialState.uiState.isValid = null;
         state.uiState.isValid = false;
 
         console.log('>> catched error:', error); // debug

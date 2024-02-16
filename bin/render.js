@@ -13,7 +13,7 @@ const handleFeedback = (elements, initialState, value) => {
     elements.input.focus();
     elements.textFeedback.classList.remove('text-danger');
     elements.textFeedback.classList.add('text-success');
-    elements.textFeedback.textContent = initialState.uiState.state;;
+    elements.textFeedback.textContent = initialState.uiState.state;
   }
 };
 
