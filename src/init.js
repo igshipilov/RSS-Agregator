@@ -2,6 +2,9 @@
 
 import * as yup from 'yup';
 import onChange from 'on-change';
+import render from '../bin/render.js';
+import i18next from 'i18next';
+import resources from './locales/index.js'
 
 /*
 
@@ -14,47 +17,18 @@ https://buzzfeed.com/world.xml
 lorem-rss.hexlet.app/feed
 buzzfeed.com/world.xml
 
----
-
 */
 
-const render = (elements) => (path, value) => {
-  console.log('RENDER >> path:', path, '>> value:', value); // debug
-  switch (path) {
-    case 'uiState.isValid':
-      // const input = elements.input;
-      if (value === false) {
-        elements.input.classList.add('is-invalid');
-      }
-      if (value === true) {
-        elements.input.classList.remove('is-invalid');
-      }
-      break;
+export default async () => {
+  const defaultLanguage = 'ru';
 
-    case 'urls':
-      elements.input.value = '';
-      elements.input.focus();
+  const i18nInstance = i18next.createInstance();
+  await i18nInstance.init({
+    lng: defaultLanguage,
+    debug: false,
+    resources,
+  })
 
-      elements.textFeedback.classList.remove('text-danger');
-      elements.textFeedback.classList.add('text-success');
-      elements.textFeedback.textContent = 'RSS успешно загружен';
-      break;
-
-    case 'uiState.error':
-      elements.textFeedback.classList.remove('text-success');
-      elements.textFeedback.classList.add('text-danger');
-      if (value === 'exists') {
-        elements.textFeedback.textContent = 'RSS уже существует';
-      } else if (value === 'incorrect') {
-        elements.textFeedback.textContent = 'Ссылка должна быть валидным URL';
-      }
-      break;
-    default:
-      throw new Error(`Unknown path: ${path}`);
-  }
-};
-
-const start = () => {
   const initialState = {
     uiState: {
       isValid: null,
@@ -110,10 +84,10 @@ const start = () => {
     console.log('>> state after user input:', initialState); // debug
   });
 
-  return initialState;
+  render(elements);
 };
 
-export default start;
+
 
 /*
 // --- шпаргалка ---
