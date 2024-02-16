@@ -1,10 +1,10 @@
 /* eslint-disable no-param-reassign, no-console, func-names  */
 
+import i18next from 'i18next';
 import * as yup from 'yup';
 import onChange from 'on-change';
+import resources from './locales/index.js';
 import render from '../bin/render.js';
-import i18next from 'i18next';
-import resources from './locales/index.js'
 
 /*
 
@@ -27,7 +27,7 @@ export default async () => {
     lng: defaultLanguage,
     debug: false,
     resources,
-  })
+  });
 
   const initialState = {
     uiState: {
@@ -86,8 +86,6 @@ export default async () => {
 
   render(elements);
 };
-
-
 
 /*
 // --- шпаргалка ---

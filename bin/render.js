@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign, no-console, func-names  */
+
 export default (elements) => (path, value) => {
   console.log('RENDER >> path:', path, '>> value:', value); // debug
   switch (path) {
@@ -26,9 +28,8 @@ export default (elements) => (path, value) => {
       if (value === 'exists') {
         elements.textFeedback.textContent = 'RSS уже существует';
       } else if (value === 'incorrect') {
-        elements.textFeedback.textContent = i18nInstance.t('feedback.invalidUrl');
-        // elements.textFeedback.textContent = 'Ссылка должна быть валидным URL';
-        
+        // elements.textFeedback.textContent = i18nInstance.t('feedback.invalidUrl');
+        elements.textFeedback.textContent = 'Ссылка должна быть валидным URL';
       }
       break;
     default:
