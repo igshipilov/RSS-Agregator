@@ -1,5 +1,6 @@
 /* eslint-disable no-param-reassign, no-console, func-names  */
 
+import axios from 'axios';
 import i18next from 'i18next';
 import * as yup from 'yup';
 import { setLocale } from 'yup';
@@ -30,7 +31,7 @@ export default () => {
     lng: defaultLanguage,
     debug: false,
     resources,
-  });
+  })
 
   const initialState = {
     uiState: {
@@ -55,7 +56,14 @@ export default () => {
     input: document.querySelector('#url-input'),
     textHint: document.querySelector('.text-muted'),
     textFeedback: document.querySelector('.feedback'),
+    content: {
+      container: document.querySelector('.container-xxl'),
+      posts: document.querySelector('.posts'),
+      feeds: document.querySelector('.feeds'),
+    },
   };
+
+  console.log(elements.posts);
 
   initialRender(elements, i18nInstance);
 
@@ -86,6 +94,13 @@ export default () => {
         initialState.uiState.state = 'feedback.success';
         initialState.urls.push(submittedUrl);
         state.uiState.isValid = true;
+
+        // fetch(`https://allorigins.hexlet.app/get?url=${encodeURIComponent(`${submittedUrl}`)}`)
+        // .then(response => {
+        //   if (response.ok) return response.json()
+        //   throw new Error('Network response was not ok.')
+        // })
+        // .then(data => console.log(data.contents));
       })
       .catch((error) => {
         // console.log('>> error:'); // debug
