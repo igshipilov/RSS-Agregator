@@ -1,4 +1,12 @@
-/* eslint-disable no-param-reassign, no-console, func-names  */
+/* eslint-disable
+
+no-param-reassign,
+no-console,
+func-names,
+array-callback-return,
+no-unused-vars,
+
+*/
 
 const handleFeedback = (elements, initialState, value, i18nInstance) => {
   if (value === false) {
@@ -17,61 +25,110 @@ const handleFeedback = (elements, initialState, value, i18nInstance) => {
   }
 };
 
-const handleTitle = (elements, initialState, value) => {
-  if (value === true) {
-    const divCardBorder = document.createElement('div');
-    const divCardBody = document.createElement('div');
-    const h2 = document.createElement('h2');
+const handleInit = (titleName) => {
+  const container = document.createElement('div');
+  const containerForTitle = document.createElement('div');
+  const title = document.createElement('h2');
+  const list = document.createElement('ul');
 
-    divCardBorder.classList.add('card', 'border-0');
-    divCardBody.classList.add('card-body');
-    h2.classList.add('card-title', 'h4');
-    
-    h2.textContent = 'Фиды'; // translate
-    divCardBody.append(h2);
-    divCardBorder.append(divCardBody);
+  container.classList.add('card', 'border-0');
+  containerForTitle.classList.add('card-body');
+  title.classList.add('card-title', 'h4');
+  list.classList.add('list-group', 'border-0', 'rounded-0');
 
-    elements.content.feeds.append(divCardBorder);
-    // elements.content.feeds.innerHTML =
-    // `<div class="card border-0">
-    //   <div class="card-body">
-    //     <h2 class="card-title h4">Фиды</h2>
-    //   </div>
-    // </div>`;
-  };
+  title.textContent = titleName;
+
+  containerForTitle.append(title);
+  container.append(containerForTitle, list);
+
+  return container;
 };
 
-const handleContent = (elements, initialState, value) => {
-  if (value === true) {
-    const list = document.createElement('ul');
-  
-    const feed = document.createElement('li');
-    const title = document.createElement('h3');
-    const description = document.createElement('p');
-  
-    list.classList.add('list-group', 'border-0', 'rounded-0');
-    feed.classList.add('list-group-item', 'border-0', 'border-end-0');
-    title.classList.add('h6', 'm-0');
-    description.classList.add('m-0', 'small', 'text-black-50');
-  
-    title.textContent = 'TEMP Title';
-    description.textContent = 'TEMP Description';
-  
-    feed.append(title, description);
-    list.append(feed);
-    elements.content.feeds.append(feed);
+const handleContent = (elements, initialState, path, value, i18nInstance) => {
+  if (path === 'content.feeds') {
+    const list = document.querySelector('.feeds > .card > ul');
+    list.textContent = '';
+
+    value.map((feed) => {
+      const item = document.createElement('li');
+      const title = document.createElement('h3');
+      const description = document.createElement('p');
+
+      item.classList.add('list-group-item', 'border-0', 'border-end-0');
+      title.classList.add('h6', 'm-0');
+      description.classList.add('m-0', 'small', 'text-black-50');
+
+      title.textContent = feed.title;
+      description.textContent = feed.description;
+
+      item.append(title, description);
+      list.prepend(item);
+    });
+  }
+
+  if (path === 'content.posts') {
+    const list = document.querySelector('.posts > .card > ul');
+    list.textContent = '';
+
+    value.map(({
+      title, link, description, id, feedId,
+    }) => {
+      const item = document.createElement('li');
+      const titleElement = document.createElement('a');
+      const button = document.createElement('button');
+
+      item.classList.add(
+        'list-group-item',
+        'd-flex',
+        'justify-content-between',
+        'align-items-start',
+        'border-0',
+        'border-end-0',
+      );
+      titleElement.classList.add('fw-bold');
+      button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
+
+      titleElement.setAttribute('href', `${link}`);
+      titleElement.setAttribute('data-id', '84');
+      titleElement.setAttribute('target', '_blank');
+      titleElement.setAttribute('rel', 'noopener noreferrer');
+
+      button.setAttribute('type', 'button');
+      button.setAttribute('data-id', '82');
+      button.setAttribute('data-bs-toggle', 'modal');
+      button.setAttribute('data-bs-target', '#modal');
+
+      titleElement.textContent = title;
+      button.textContent = i18nInstance.t('buttons.view');
+
+      item.append(titleElement, button);
+      list.prepend(item);
+    });
   }
 };
-
 
 export default (elements, initialState, i18nInstance) => (path, value) => {
   // console.log('RENDER >> path:', path, '>> value:', value); // debug
   switch (path) {
     case 'uiState.isValid':
       handleFeedback(elements, initialState, value, i18nInstance);
-      // FIXME -- handleTitle -- Сделать проверку на существование, чтобы рендерить только в первый раз
-      // handleTitle(elements, initialState, value);
-      // handleContent(elements, initialState, value);
+      break;
+
+    case 'content.feeds':
+      if (value) {
+        const postsChildNodes = document.querySelector('.posts').childNodes;
+        const isPostsInitiated = !!postsChildNodes.length;
+
+        if (!isPostsInitiated) {
+          elements.content.feeds.append(handleInit('Фиды'));
+          elements.content.posts.append(handleInit('Посты'));
+        }
+      }
+      handleContent(elements, initialState, path, value);
+      break;
+
+    case 'content.posts':
+      handleContent(elements, initialState, path, value, i18nInstance);
       break;
 
     default:

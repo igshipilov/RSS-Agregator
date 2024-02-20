@@ -5,11 +5,13 @@ export default {
     },
     buttons: {
       add: 'Add',
+      view: 'View',
     },
     feedback: {
       invalidUrl: 'Must be valid URL',
       alreadyExists: 'RSS already exists',
       success: 'RSS successfully uploaded',
+      parseError: 'Unable to read file',
     },
     example: {},
     titles: {

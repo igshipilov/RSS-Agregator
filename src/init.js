@@ -1,6 +1,7 @@
-/* eslint-disable no-param-reassign, no-console, func-names  */
+/* eslint-disable no-param-reassign, no-console, func-names, consistent-return  */
 
 import axios from 'axios';
+import _ from 'lodash';
 import i18next from 'i18next';
 import * as yup from 'yup';
 import { setLocale } from 'yup';
@@ -31,7 +32,7 @@ export default () => {
     lng: defaultLanguage,
     debug: false,
     resources,
-  })
+  });
 
   const initialState = {
     uiState: {
@@ -40,6 +41,10 @@ export default () => {
     },
     processAdd: 'filling', // 'sending', 'sent', 'error'
     urls: [],
+    content: {
+      feeds: [],
+      posts: [],
+    },
   };
   // console.log('>> initialState:', initialState); // debug
 
@@ -63,8 +68,6 @@ export default () => {
     },
   };
 
-  console.log(elements.posts);
-
   initialRender(elements, i18nInstance);
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
@@ -84,6 +87,40 @@ export default () => {
     })
     .required();
 
+  const getParsedXML = (data) => {
+    const parser = new DOMParser();
+    const xmlString = data.contents;
+
+    try {
+      const parsed = parser.parseFromString(xmlString, 'text/xml');
+
+      const feed = {
+        title: parsed.documentElement.getElementsByTagName('title')[0].textContent,
+        description: parsed.documentElement.getElementsByTagName('description')[0].textContent,
+        id: _.uniqueId(),
+      };
+
+      const items = parsed.documentElement.getElementsByTagName('item');
+
+      const posts = [...items].map((item) => {
+        const title = item.querySelector('title').textContent;
+        const link = item.querySelector('link').textContent;
+        const description = item.querySelector('description').textContent;
+        const id = _.uniqueId();
+        const feedId = feed.id;
+
+        return {
+          title, link, description, id, feedId,
+        };
+      });
+
+      return { feed, posts };
+    } catch (error) {
+      initialState.uiState.state = 'feedback.parseError';
+      state.uiState.isValid = false;
+    }
+  };
+
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -93,14 +130,40 @@ export default () => {
       .then(() => {
         initialState.uiState.state = 'feedback.success';
         initialState.urls.push(submittedUrl);
-        state.uiState.isValid = true;
+        initialState.uiState.isValid = null;
 
-        // fetch(`https://allorigins.hexlet.app/get?url=${encodeURIComponent(`${submittedUrl}`)}`)
-        // .then(response => {
-        //   if (response.ok) return response.json()
-        //   throw new Error('Network response was not ok.')
-        // })
-        // .then(data => console.log(data.contents));
+        state.uiState.isValid = true;
+        axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${submittedUrl}`)}`)
+          .then((response) => {
+            if (response) return response.data;
+            throw new Error('Network response was not ok.');
+          })
+          .then((data) => {
+            const parsedData = getParsedXML(data);
+
+            state.content.feeds.push(parsedData.feed);
+            state.content.posts.push(...parsedData.posts);
+
+          // console.log('>> initialState.content.posts:'); // debug
+          // console.log(initialState.content.posts[0].title); // debug
+          });
+
+        // ---- DELETE ME ----
+        // fetch(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${submittedUrl}`)}`)
+        //   .then((response) => {
+        //     if (response.ok) return response.json();
+        //     throw new Error('Network response was not ok.');
+        //   })
+        //   .then((data) => {
+        //     const parsedData = getParsedXML(data);
+
+        //     state.content.feeds.push(parsedData.feed);
+        //     state.content.posts.push(...parsedData.posts);
+
+        //   // console.log('>> initialState.content.posts:'); // debug
+        //   // console.log(initialState.content.posts[0].title); // debug
+        //   });
+        // ------------------
       })
       .catch((error) => {
         // console.log('>> error:'); // debug

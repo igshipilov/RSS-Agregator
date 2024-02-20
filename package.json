@@ -20,7 +20,7 @@
     },
     "testEnvironment": "jsdom"
   },
-  "main": "src/init.js",
+  "main": "main.js",
   "dependencies": {
     "@popperjs/core": "^2.11.8",
     "ajv": "^8.12.0",
