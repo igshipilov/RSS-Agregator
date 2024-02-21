@@ -87,17 +87,24 @@ export default () => {
     })
     .required();
 
-  const getParsedXML = (data) => {
+  const parseXML = (xml) => {
     const parser = new DOMParser();
-    const xmlString = data.contents;
 
     try {
-      const parsed = parser.parseFromString(xmlString, 'text/xml');
+      const parsed = parser.parseFromString(xml, 'text/xml');
+
+      const setId = (currentTitle, type) => {
+        const wasFeedAdded = initialState.content[type].find(({ title }) => title === currentTitle);
+        return wasFeedAdded ? wasFeedAdded.id : _.uniqueId()
+      };
+      
+      const title = parsed.documentElement.getElementsByTagName('title')[0].textContent;
+      const description = parsed.documentElement.getElementsByTagName('description')[0].textContent;
 
       const feed = {
-        title: parsed.documentElement.getElementsByTagName('title')[0].textContent,
-        description: parsed.documentElement.getElementsByTagName('description')[0].textContent,
-        id: _.uniqueId(),
+        title,
+        description,
+        id: setId(title, 'feeds'),
       };
 
       const items = parsed.documentElement.getElementsByTagName('item');
@@ -106,7 +113,7 @@ export default () => {
         const title = item.querySelector('title').textContent;
         const link = item.querySelector('link').textContent;
         const description = item.querySelector('description').textContent;
-        const id = _.uniqueId();
+        const id = setId(title, 'posts');
         const feedId = feed.id;
 
         return {
@@ -115,77 +122,70 @@ export default () => {
       });
 
       return { feed, posts };
-    } catch (error) {
+
+    } catch (error) { 
       initialState.uiState.state = 'feedback.parseError';
       state.uiState.isValid = false;
     }
   };
+
+  const addFeedsAndPostsToState = (xml) => {
+    const parsedData = parseXML(xml);
+    const currentPosts = initialState.content.posts;
+    const parsedPosts = parsedData.posts;
+    const newPosts = _.differenceWith(parsedPosts, currentPosts, _.isEqual);
+    const hasNewPosts = !_.isEmpty(newPosts);
+
+    if (hasNewPosts) {
+      // state.content.feeds.push(parsedData.feed);
+      state.content.posts.push(...newPosts);
+    }
+  };
+
+  const getXmlFromUrl = (url) => axios.get(
+    `https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${url}`)}`
+    )
+  .then((response) => {
+    if (response) return response.data.contents;
+    throw new Error('Network response was not ok.');
+  });
+
+  const addContentFromUrl = (submittedUrl) => {
+    schema.validate(submittedUrl, { urls: initialState.urls })
+      .then(() => {
+        initialState.uiState.state = 'feedback.success';
+        initialState.urls.push(submittedUrl);
+        // сбрасываю статус на null, чтобы рендерился контент из идущего подряд валидного url 
+        initialState.uiState.isValid = null;
+
+        state.uiState.isValid = true;
+        getXmlFromUrl(submittedUrl).then((xml) => addFeedsAndPostsToState(xml));
+      })
+      .catch((error) => {
+        initialState.uiState.state = error.errors.map((curErr) => i18nInstance.t(curErr.key));
+
+        // сбрасываю статус на null, чтобы рендерилась ошибка, идущая подряд
+        initialState.uiState.isValid = null;
+        state.uiState.isValid = false;
+      });
+  };
+
+const postIfPostsUpdated = () => {
+  setTimeout(function run() {
+    initialState.urls.forEach((url) => {
+      getXmlFromUrl(url).then((xml) => addFeedsAndPostsToState(xml));
+    });
+    setTimeout(run, 1000);
+  }, 0)
+};
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const formData = new FormData(e.target);
     const submittedUrl = formData.get('url');
-    schema.validate(submittedUrl, { urls: initialState.urls })
-      .then(() => {
-        initialState.uiState.state = 'feedback.success';
-        initialState.urls.push(submittedUrl);
-        initialState.uiState.isValid = null;
 
-        state.uiState.isValid = true;
-        axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${submittedUrl}`)}`)
-          .then((response) => {
-            if (response) return response.data;
-            throw new Error('Network response was not ok.');
-          })
-          .then((data) => {
-            const parsedData = getParsedXML(data);
-
-            state.content.feeds.push(parsedData.feed);
-            state.content.posts.push(...parsedData.posts);
-
-          // console.log('>> initialState.content.posts:'); // debug
-          // console.log(initialState.content.posts[0].title); // debug
-          });
-
-        // ---- DELETE ME ----
-        // fetch(`https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${submittedUrl}`)}`)
-        //   .then((response) => {
-        //     if (response.ok) return response.json();
-        //     throw new Error('Network response was not ok.');
-        //   })
-        //   .then((data) => {
-        //     const parsedData = getParsedXML(data);
-
-        //     state.content.feeds.push(parsedData.feed);
-        //     state.content.posts.push(...parsedData.posts);
-
-        //   // console.log('>> initialState.content.posts:'); // debug
-        //   // console.log(initialState.content.posts[0].title); // debug
-        //   });
-        // ------------------
-      })
-      .catch((error) => {
-        // console.log('>> error:'); // debug
-        // console.log(JSON.parse(JSON.stringify(error))); // debug
-        initialState.uiState.state = error.errors.map((curErr) => i18nInstance.t(curErr.key));
-        // --- Чтобы эти логи работил, оберни колбэк мэпа в {} ---
-        // console.log('>>>> currentErr:');
-        // console.log(currentErr);
-
-        // console.log('>>>> i18nInstance.t(currentErr.key):');
-        // console.log(i18nInstance.t(currentErr.key));
-        // -------------------------------------------------------
-
-        // сбрасываю статус на null, чтобы рендерилась ошибка, идущая подряд
-        initialState.uiState.isValid = null;
-        state.uiState.isValid = false;
-
-        // console.log('>> catched error:', error); // debug
-        // console.log('>> catched error.errors:', error.errors); // debug
-      });
-
-    // console.log(`>> user sent: ${submittedUrl}`); // debug
-    // console.log('>> state after user input:', initialState); // debug
+    addContentFromUrl(submittedUrl);
+    postIfPostsUpdated();
   });
 };

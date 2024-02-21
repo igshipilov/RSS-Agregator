@@ -128,6 +128,15 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
       break;
 
     case 'content.posts':
+      if (value) {
+        const postsChildNodes = document.querySelector('.posts').childNodes;
+        const isPostsInitiated = !!postsChildNodes.length;
+
+        if (!isPostsInitiated) {
+          elements.content.feeds.append(handleInit('Фиды'));
+          elements.content.posts.append(handleInit('Посты'));
+        }
+      }
       handleContent(elements, initialState, path, value, i18nInstance);
       break;
 
