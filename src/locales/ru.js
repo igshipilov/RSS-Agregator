@@ -10,8 +10,9 @@ export default {
     feedback: {
       invalidUrl: 'Ссылка должна быть валидным URL',
       alreadyExists: 'RSS уже существует',
-      success: 'RSS успешно загружен',
       parseError: 'Не удаётся прочитать файл',
+      networkError: 'Что-то Сеть не фурычит',
+      success: 'RSS успешно загружен',
     },
     example: {},
     titles: {
