@@ -155,6 +155,7 @@ export default () => {
       const feed = {
         title,
         description,
+
       };
 
       const items = parsed.documentElement.getElementsByTagName('item');
@@ -204,6 +205,7 @@ export default () => {
     if (isSubmitted()) {
       state.buttons.addDisabled = true;
     }
+
 
     const proxyDisabledCache = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
 
