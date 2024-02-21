@@ -42,7 +42,7 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
 
 
 // ----------------------------------------------------------------
-// ============== OLD render.js =============================================
+// ============== OLD render.js ===================================
 // ----------------------------------------------------------------
 
 // const handleFeedback = (elements, initialState, value, i18nInstance) => {
