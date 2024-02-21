@@ -35,15 +35,19 @@ export default () => {
   });
 
   const initialState = {
-    uiState: {
-      isValid: null,
-      state: null, // error key from yup, to access it from i18next in View
-    },
-    processAdd: 'filling', // 'sending', 'sent', 'error'
-    urls: [],
     content: {
-      feeds: [],
-      posts: [],
+      hasUrls: false,
+      wasInitiated: false,
+      modal: [], // [{ modalId: 1, visibility: true }, { modalId: 2, visibility: false }, ...]
+      lists: {
+        urls: [], // ['https://lorem-rss.hexlet.app/feed', ...]
+        feeds: [], // [{ title, description, id }]
+        posts: [], // [{ title, link, description, id, feedId }, {...}, ...]
+      },
+    },
+    form: {
+      state: null, // 'error', 'success'
+      error: null, // 'invalidUrl', 'alreadyExists', 'parseError'
     },
   };
   // console.log('>> initialState:', initialState); // debug
