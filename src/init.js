@@ -1,4 +1,13 @@
-/* eslint-disable no-param-reassign, no-console, func-names, consistent-return  */
+/* eslint-disable
+
+no-param-reassign,
+no-console,
+func-names,
+consistent-return,
+no-shadow,
+max-len
+
+*/
 
 import axios from 'axios';
 import _ from 'lodash';
@@ -7,7 +16,6 @@ import * as yup from 'yup';
 import { setLocale } from 'yup';
 import onChange from 'on-change';
 import resources from './locales/index.js';
-import initialRender from '../bin/initialRender.js';
 import render from '../bin/render.js';
 
 /*
@@ -53,7 +61,7 @@ export default () => {
     },
     buttons: {
       addDisabled: false,
-    }
+    },
   };
   // console.log('>> initialState:', initialState); // debug
 
@@ -78,13 +86,13 @@ export default () => {
   };
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
-  
+
   setLocale({
     string: {
       url: () => ({ key: 'feedback.invalidUrl' }),
     },
   });
-  
+
   const schema = yup.string()
     .trim()
     .url()
@@ -94,8 +102,6 @@ export default () => {
     })
     .required();
 
-
-
   // -----------------------------------------------------------------------------
   // Если это сабмит от юзера, то:
   // рендер всех постов
@@ -104,8 +110,8 @@ export default () => {
   // добавляет только новые посты в state.newPosts,
   // рендерит и затем удаляет их из state.newPosts
 
-    // То есть отслеживание обновлений рендерит только новые посты из уже добавленных урлов
-    // (поэтому feedId новых постов надо как-то связать с уже добавленными фидами)
+  // То есть отслеживание обновлений рендерит только новые посты из уже добавленных урлов
+  // (поэтому feedId новых постов надо как-то связать с уже добавленными фидами)
 
   // isSubmitted === bool
   // он нужен, чтобы выбрать:
@@ -115,30 +121,28 @@ export default () => {
   // Ещё быть может возможно сделать эту функцию универсальной в части триггера рендера постов.
   // Надо ещё подумать.
 
-
   // ❌ FIXME -- кажется, не отрабатывает проверка новых поство и запись их в state
-    const addFeedsAndPostsToState = (collFeedsAndPosts, isSubmitted) => {
-      const { posts, feed } = collFeedsAndPosts;
-      // console.log(posts, feed); // debug
+  const addFeedsAndPostsToState = (collFeedsAndPosts, isSubmitted) => {
+    const { posts, feed } = collFeedsAndPosts;
+    // console.log(posts, feed); // debug
 
-      const currentPosts = initialState.content.lists.posts;
-      const newPosts = _.differenceWith(posts, currentPosts, _.isEqual);
-      const hasNewPosts = !_.isEmpty(newPosts);
+    const currentPosts = initialState.content.lists.posts;
+    const newPosts = _.differenceWith(posts, currentPosts, _.isEqual);
+    const hasNewPosts = !_.isEmpty(newPosts);
 
-      if (isSubmitted) {
-        state.content.lists.feeds.push(feed);
-      }
-      if (hasNewPosts) {
-        initialState.content.lists.posts.push(...newPosts);
-        state.content.lists.newPosts.push(...newPosts);
-        initialState.content.lists.newPosts = [];
-      }
+    if (isSubmitted) {
+      state.content.lists.feeds.push(feed);
+    }
+    if (hasNewPosts) {
+      initialState.content.lists.posts.push(...newPosts);
+      state.content.lists.newPosts.push(...newPosts);
+      initialState.content.lists.newPosts = [];
+    }
 
-      console.log(newPosts);
-      // console.log(initialState.content.lists)
-    };
+    console.log(newPosts);
+    // console.log(initialState.content.lists)
+  };
     // -----------------------------------------------------------------------------
-
 
   const parseXML = (xml) => {
     const parser = new DOMParser();
@@ -160,26 +164,23 @@ export default () => {
         const link = item.querySelector('link').textContent;
         const description = item.querySelector('description').textContent;
 
-        return { title, link, description, };
+        return { title, link, description };
       });
 
       return { feed, posts };
-
-    } catch (error) { 
+    } catch (error) {
       initialState.uiState.state = 'feedback.parseError';
       state.uiState.isValid = false;
     }
   };
-    
-
 
   const addIDs = (coll) => {
     // const { title: feedTitle, description: feedDescription } = coll.feed;
     const resultColl = coll;
-    
+
     const setId = (currentTitle, type) => {
       const wasFeedAdded = initialState.content.lists[type].find(({ title }) => title === currentTitle);
-      return wasFeedAdded ? wasFeedAdded.id : _.uniqueId()
+      return wasFeedAdded ? wasFeedAdded.id : _.uniqueId();
     };
 
     resultColl.feed.id = setId(coll.feed.title, 'feeds');
@@ -191,19 +192,18 @@ export default () => {
     });
 
     // console.log(resultColl); // debug
-    return(resultColl);
+    return (resultColl);
   };
 
-  const handleUrl = (url) => {
+  const handleUrl = (url, e) => {
     const isSubmitted = () => {
-      try { return !!e }
-      catch(err) { return false }
+      try { return !!e; } catch (err) { return false; }
     };
 
     // кнопка заблочится только если это сабмит (и не заблочится при автопроверке обновлений)
     if (isSubmitted()) {
       state.buttons.addDisabled = true;
-    };
+    }
 
     const proxyDisabledCache = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
 
@@ -213,11 +213,11 @@ export default () => {
           const wasUrlAdded = initialState.content.lists.urls.includes(url);
           if (!wasUrlAdded) {
             initialState.content.lists.urls.push(url);
-          };
+          }
           state.initiated = true; // триггерим первичный рендер (заголовки "Фиды" и "Посты", <ul>)
 
           return response.data.contents; // xml → typeof: string
-        };
+        }
         throw new Error('feedback.networkError');
       })
       .then((xml) => parseXML(xml))
@@ -230,9 +230,8 @@ export default () => {
       .catch((err) => { // обработчик ошибки Сети
         state.form.error = i18nInstance.t(err.message);
         state.buttons.addDisabled = false;
-      })
+      });
   };
-
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -242,23 +241,21 @@ export default () => {
 
     // в schema.validate второй аргумент { urls: ... } нужен для yup.test('not-one-of')
     schema.validate(submittedUrl, { urls: initialState.content.lists.urls })
-      .then(() => handleUrl(submittedUrl))
+      .then(() => handleUrl(submittedUrl, e))
       .catch((err) => { // обработчик ошибок ввода (юзер ошибся)
         state.form.error = err.errors.map((curErr) => i18nInstance.t(curErr.key));
         state.buttons.addDisabled = false;
       });
-    });
+  });
 
   // ❌ FIXME -- кажется, не отрабатывает таймер
   if (initialState.subscribed === true) {
     setTimeout(function run() {
       initialState.content.lists.urls.forEach((url) => handleUrl(url));
       setTimeout(run, 1000);
-    }, 0)
-  };
+    }, 0);
+  }
 };
-
-
 
 // ----------------------------------------------------------------
 // ============== OLD init.js =====================================
@@ -275,7 +272,7 @@ export default () => {
 //         const wasFeedAdded = initialState.content[type].find(({ title }) => title === currentTitle);
 //         return wasFeedAdded ? wasFeedAdded.id : _.uniqueId()
 //       };
-      
+
 //       const title = parsed.documentElement.getElementsByTagName('title')[0].textContent;
 //       const description = parsed.documentElement.getElementsByTagName('description')[0].textContent;
 
@@ -301,7 +298,7 @@ export default () => {
 
 //       return { feed, posts };
 
-//     } catch (error) { 
+//     } catch (error) {
 //       initialState.uiState.state = 'feedback.parseError';
 //       state.uiState.isValid = false;
 //     }
@@ -333,7 +330,7 @@ export default () => {
 //       .then(() => {
 //         initialState.uiState.state = 'feedback.success';
 //         initialState.urls.push(submittedUrl);
-//         // сбрасываю статус на null, чтобы рендерился контент из идущего подряд валидного url 
+//         // сбрасываю статус на null, чтобы рендерился контент из идущего подряд валидного url
 //         initialState.uiState.isValid = null;
 
 //         state.uiState.isValid = true;

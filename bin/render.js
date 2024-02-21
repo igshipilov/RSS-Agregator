@@ -25,21 +25,11 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
         elements.buttons.add.removeAttribute('disabled');
       }
       break;
+
+    default:
+      throw new Error(`Unknown path: ${path}`);
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // ----------------------------------------------------------------
 // ============== OLD render.js ===================================
