@@ -206,7 +206,6 @@ export default () => {
       state.buttons.addDisabled = true;
     }
 
-
     const proxyDisabledCache = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
 
     axios.get(`${proxyDisabledCache}${encodeURIComponent(`${url}`)}`)
