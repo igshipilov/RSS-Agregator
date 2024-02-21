@@ -95,16 +95,16 @@ export default () => {
 
       const setId = (currentTitle, type) => {
         const wasFeedAdded = initialState.content[type].find(({ title }) => title === currentTitle);
-        return wasFeedAdded ? wasFeedAdded.id : _.uniqueId()
+        return wasFeedAdded ? wasFeedAdded.id : _.uniqueId();
       };
-      
-      const title = parsed.documentElement.getElementsByTagName('title')[0].textContent;
-      const description = parsed.documentElement.getElementsByTagName('description')[0].textContent;
+
+      const feedTitle = parsed.documentElement.getElementsByTagName('title')[0].textContent;
+      const feedDescription = parsed.documentElement.getElementsByTagName('description')[0].textContent;
 
       const feed = {
-        title,
-        description,
-        id: setId(title, 'feeds'),
+        title: feedTitle,
+        description: feedDescription,
+        id: setId(feedTitle, 'feeds'),
       };
 
       const items = parsed.documentElement.getElementsByTagName('item');
@@ -122,8 +122,7 @@ export default () => {
       });
 
       return { feed, posts };
-
-    } catch (error) { 
+    } catch (error) {
       initialState.uiState.state = 'feedback.parseError';
       state.uiState.isValid = false;
     }
@@ -143,19 +142,19 @@ export default () => {
   };
 
   const getXmlFromUrl = (url) => axios.get(
-    `https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${url}`)}`
-    )
-  .then((response) => {
-    if (response) return response.data.contents;
-    throw new Error('Network response was not ok.');
-  });
+    `https://allorigins.hexlet.app/get?disableCache=true&url=${encodeURIComponent(`${url}`)}`,
+  )
+    .then((response) => {
+      if (response) return response.data.contents;
+      throw new Error('Network response was not ok.');
+    });
 
   const addContentFromUrl = (submittedUrl) => {
     schema.validate(submittedUrl, { urls: initialState.urls })
       .then(() => {
         initialState.uiState.state = 'feedback.success';
         initialState.urls.push(submittedUrl);
-        // сбрасываю статус на null, чтобы рендерился контент из идущего подряд валидного url 
+        // сбрасываю статус на null, чтобы рендерился контент из идущего подряд валидного url
         initialState.uiState.isValid = null;
 
         state.uiState.isValid = true;
@@ -170,14 +169,14 @@ export default () => {
       });
   };
 
-const postIfPostsUpdated = () => {
-  setTimeout(function run() {
-    initialState.urls.forEach((url) => {
-      getXmlFromUrl(url).then((xml) => addFeedsAndPostsToState(xml));
-    });
-    setTimeout(run, 1000);
-  }, 0)
-};
+  const postIfPostsUpdated = () => {
+    setTimeout(function run() {
+      initialState.urls.forEach((url) => {
+        getXmlFromUrl(url).then((xml) => addFeedsAndPostsToState(xml));
+      });
+      setTimeout(run, 1000);
+    }, 0);
+  };
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
