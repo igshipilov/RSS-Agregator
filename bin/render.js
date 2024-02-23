@@ -86,12 +86,12 @@ const handlePosts = (elements, initialState, path, value, i18nInstance) => {
     button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
 
     titleElement.setAttribute('href', `${link}`);
-    titleElement.setAttribute('data-id', '84');
+    titleElement.setAttribute('data-id', `${id}`);
     titleElement.setAttribute('target', '_blank');
     titleElement.setAttribute('rel', 'noopener noreferrer');
 
     button.setAttribute('type', 'button');
-    button.setAttribute('data-id', '82');
+    button.setAttribute('data-id', `${id}`);
     button.setAttribute('data-bs-toggle', 'modal');
     button.setAttribute('data-bs-target', '#modal');
 
@@ -103,8 +103,22 @@ const handlePosts = (elements, initialState, path, value, i18nInstance) => {
   });
 };
 
+const handlerClickedPost = (elements, initialState, value) => {
+  const currentPost = document.querySelector(`[data-id="${value}"]`);
+  const { posts } = initialState.content.lists;
+  const currentPostData = posts.find(({ id }) => id === value);
+  const { title, description, link } = currentPostData;
+
+  currentPost.classList.remove('fw-bold');
+  currentPost.classList.add('fw-normal', 'link-secondary');
+
+  elements.modal.title.textContent = title;
+  elements.modal.body.textContent = description;
+  elements.modal.fullArticle.setAttribute('href', `${link}`);
+};
+
 export default (elements, initialState, i18nInstance) => (path, value) => {
-  console.log('RENDER >> path:', path, '>> value:', value); // debug
+  // console.log('RENDER >> path:', path, '>> value:', value); // debug
 
   switch (path) {
     case 'initiated':
@@ -126,6 +140,10 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
 
     case 'content.lists.newPosts':
       handlePosts(elements, initialState, path, value, i18nInstance);
+      break;
+
+    case 'ui.activePostId':
+      handlerClickedPost(elements, initialState, value);
       break;
 
     default:

@@ -24,8 +24,8 @@ import render from '../bin/render.js';
 ФИДЫ ДЛЯ ТЕСТОВ
 ✅ Рабочие:
 https://lorem-rss.hexlet.app/feed?unit=second
-https://lorem-rss.herokuapp.com/feed?unit=second
 https://buzzfeed.com/world.xml
+https://lorem-rss.herokuapp.com/feed?unit=second
 
 ❌ Нерабочие:
 lorem-rss.hexlet.app/feed
@@ -49,7 +49,7 @@ export default () => {
     timerOn: false,
     initiated: false,
     content: {
-      modal: [], // [{ modalId: 1, visibility: true }, { modalId: 2, visibility: false }, ...]
+      // modal: [], // [{ modalId: 1, visibility: true }, { modalId: 2, visibility: false }, ...]
       lists: {
         urls: [], // ['https://lorem-rss.hexlet.app/feed', ...]
         feeds: [], // [{ title, description, id }]
@@ -62,6 +62,9 @@ export default () => {
     },
     buttons: {
       addDisabled: false,
+    },
+    ui: {
+      activePostId: null,
     },
   };
   // console.log('>> initialState:', initialState); // debug
@@ -84,8 +87,16 @@ export default () => {
       posts: document.querySelector('.posts'),
       feeds: document.querySelector('.feeds'),
     },
+    modal: {
+      window: document.querySelector('#modal'),
+      title: document.querySelector('.modal-title'),
+      body: document.querySelector('.modal-body'),
+      fullArticle: document.querySelector('.full-article'),
+    },
+    // allPosts: document.querySelectorAll('.posts > .card > ul > li'),
   };
 
+  // console.log(elements.modal);
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
   setLocale({
@@ -237,5 +248,23 @@ export default () => {
         state.form.feedback = err.errors.map((curErr) => i18nInstance.t(curErr.key));
         state.buttons.addDisabled = false;
       });
+  });
+
+  const modal = elements.modal.window;
+  modal.addEventListener('show.bs.modal', (e) => {
+    const button = e.relatedTarget;
+    const id = button.getAttribute('data-id');
+
+    state.ui.activePostId = id;
+  });
+
+  const { posts } = elements.content;
+  posts.addEventListener('click', (e) => {
+    const el = e.target;
+
+    if (el.tagName === 'A') {
+      const { id } = el.dataset;
+      state.ui.activePostId = id;
+    }
   });
 };
