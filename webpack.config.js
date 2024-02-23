@@ -1,5 +1,3 @@
-// Generated using webpack-cli https://github.com/webpack/webpack-cli
-
 import path from 'node:path';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import { fileURLToPath } from 'url';
@@ -23,21 +21,19 @@ const config = {
       template: 'index.html',
     }),
   ],
-
   module: {
     rules: [
+      { test: /\.css$/, use: ['style-loader', 'css-loader', 'postcss-loader'] },
       {
         test: /\.scss$/,
         use: ['style-loader', 'css-loader', 'sass-loader', 'postcss-loader'],
       },
-      { test: /\.css$/, use: ['style-loader', 'css-loader', 'postcss-loader'] },
       {
-        test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        use: 'url-loader?limit=10000',
+        test: /\.(js|jsx)$/i,
       },
       {
-        test: /\.(ttf|eot|svg)(\?[\s\S]+)?$/,
-        use: 'file-loader',
+        test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
+        type: 'asset',
       },
     ],
   },
@@ -49,6 +45,5 @@ export default () => {
   } else {
     config.mode = 'development';
   }
-
   return config;
 };
