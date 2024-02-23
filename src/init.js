@@ -33,42 +33,7 @@ buzzfeed.com/world.xml
 
 */
 
-export default () => {
-  const defaultLanguage = 'ru';
-
-  const i18nInstance = i18next.createInstance();
-
-  i18nInstance.init({
-    lng: defaultLanguage,
-    debug: false,
-    resources,
-  });
-
-  const initialState = {
-    subscribed: false,
-    timerOn: false,
-    initiated: false,
-    content: {
-      // modal: [], // [{ modalId: 1, visibility: true }, { modalId: 2, visibility: false }, ...]
-      lists: {
-        urls: [], // ['https://lorem-rss.hexlet.app/feed', ...]
-        feeds: [], // [{ title, description, id }]
-        posts: [], // [{ title, link, description, id, feedId }, {...}, ...]
-        newPosts: [],
-      },
-    },
-    form: {
-      feedback: null,
-    },
-    buttons: {
-      addDisabled: false,
-    },
-    ui: {
-      activePostId: null,
-    },
-  };
-  // console.log('>> initialState:', initialState); // debug
-
+const run = (initialState, i18nInstance) => {
   const elements = {
     titles: {
       title: document.querySelector('.display-3'),
@@ -267,4 +232,40 @@ export default () => {
       state.ui.activePostId = id;
     }
   });
+};
+
+export default () => {
+  const initialState = {
+    subscribed: false,
+    timerOn: false,
+    initiated: false,
+    content: {
+      lists: {
+        urls: [], // ['https://lorem-rss.hexlet.app/feed', ...]
+        feeds: [], // [{ title, description, id }]
+        posts: [], // [{ title, link, description, id, feedId }, {...}, ...]
+        newPosts: [],
+      },
+    },
+    form: {
+      feedback: null,
+    },
+    buttons: {
+      addDisabled: false,
+    },
+    ui: {
+      activePostId: null,
+    },
+  };
+  // console.log('>> initialState:', initialState); // debug
+
+  const defaultLanguage = 'ru';
+
+  const i18nInstance = i18next.createInstance();
+
+  i18nInstance.init({
+    lng: defaultLanguage,
+    debug: false,
+    resources,
+  }).then(run(initialState, i18nInstance));
 };
