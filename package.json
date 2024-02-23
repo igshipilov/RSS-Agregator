@@ -4,9 +4,6 @@
   "description": "RSS-Agregator",
   "main": "index.js",
   "type": "module",
-  "bin": {
-    "frontend-project-11": "bin/render.js"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "npx eslint .",
