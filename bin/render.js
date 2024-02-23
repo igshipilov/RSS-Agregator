@@ -63,7 +63,6 @@ const handleFeeds = (value) => {
 
 const handlePosts = (value, i18nInstance) => {
   const list = document.querySelector('.posts > .card > ul');
-  // list.textContent = '';
 
   value.map(({
     title, link, id,
