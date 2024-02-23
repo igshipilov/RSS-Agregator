@@ -1,13 +1,13 @@
 {
   "name": "@hexlet/code",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "RSS-agregator",
   "scripts": {
     "test": "jest --colors",
     "start": "webpack serve"
   },
   "engines": {
-    "node": ">= 18.12.0"
+    "node": ">=18"
   },
   "repository": {
     "type": "git",
