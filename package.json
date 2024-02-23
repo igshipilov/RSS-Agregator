@@ -6,6 +6,9 @@
     "test": "jest --colors",
     "start": "webpack serve"
   },
+  "engines": {
+    "node": ">= 18.12.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/igshipilov/frontend-project-11.git"
