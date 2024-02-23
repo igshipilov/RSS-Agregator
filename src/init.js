@@ -2,10 +2,7 @@
 
 no-param-reassign,
 no-console,
-func-names,
 consistent-return,
-no-shadow,
-max-len,
 no-use-before-define,
 
 */
@@ -58,10 +55,8 @@ const run = (initialState, i18nInstance) => {
       body: document.querySelector('.modal-body'),
       fullArticle: document.querySelector('.full-article'),
     },
-    // allPosts: document.querySelectorAll('.posts > .card > ul > li'),
   };
 
-  // console.log(elements.modal);
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
   setLocale({
@@ -73,7 +68,7 @@ const run = (initialState, i18nInstance) => {
   const schema = yup.string()
     .trim()
     .url()
-    .test('not-one-of', { key: 'feedback.alreadyExists' }, function (value) {
+    .test('not-one-of', { key: 'feedback.alreadyExists' }, function checkNotOneOf(value) {
       const { urls } = this.options;
       return !urls.includes(value);
     })
@@ -101,12 +96,12 @@ const run = (initialState, i18nInstance) => {
 
     try {
       const parsed = parser.parseFromString(xml, 'text/xml');
-      const title = parsed.documentElement.getElementsByTagName('title')[0].textContent;
-      const description = parsed.documentElement.getElementsByTagName('description')[0].textContent;
+      const feedTitle = parsed.documentElement.getElementsByTagName('title')[0].textContent;
+      const feedDescription = parsed.documentElement.getElementsByTagName('description')[0].textContent;
 
       const feed = {
-        title,
-        description,
+        title: feedTitle,
+        description: feedDescription,
       };
 
       const items = parsed.documentElement.getElementsByTagName('item');
@@ -131,7 +126,9 @@ const run = (initialState, i18nInstance) => {
     const resultColl = coll;
 
     const setId = (currentTitle, type) => {
-      const wasFeedAdded = initialState.content.lists[type].find(({ title }) => title === currentTitle);
+      const wasFeedAdded = initialState.content.lists[type].find(
+        ({ title }) => title === currentTitle,
+      );
       return wasFeedAdded ? wasFeedAdded.id : _.uniqueId();
     };
 
@@ -143,7 +140,6 @@ const run = (initialState, i18nInstance) => {
       post.feedId = feedId;
     });
 
-    // console.log(resultColl); // debug
     return (resultColl);
   };
 
@@ -162,10 +158,10 @@ const run = (initialState, i18nInstance) => {
 
   const runTimer = () => {
     if (initialState.subscribed === true && initialState.timerOn === false) {
-      setTimeout(function run() {
+      setTimeout(function runUrlUpdate() {
         initialState.content.lists.urls.forEach((url) => handleUrl(url));
         initialState.timerOn = true;
-        setTimeout(run, 5000);
+        setTimeout(runUrlUpdate, 5000);
       }, 5000);
     }
   };
@@ -186,14 +182,13 @@ const run = (initialState, i18nInstance) => {
       .then((response) => getXML(response, url))
       .then((xml) => parseXML(xml))
       .then((coll) => addIDs(coll))
-      .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted())) // здесь триггерим рендер
+      .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
       .then(() => {
         state.buttons.addDisabled = false;
         initialState.subscribed = true;
         runTimer();
       })
       .catch((err) => { // обработчик ошибки Сети
-        console.log(err);
         state.form.feedback = i18nInstance.t(err.message);
         state.buttons.addDisabled = false;
       });
@@ -257,7 +252,6 @@ export default () => {
       activePostId: null,
     },
   };
-  // console.log('>> initialState:', initialState); // debug
 
   const defaultLanguage = 'ru';
 

@@ -2,9 +2,7 @@
 
 no-param-reassign,
 no-console,
-func-names,
 array-callback-return,
-no-unused-vars,
 
 */
 const handleInit = (titleName) => {
@@ -63,12 +61,12 @@ const handleFeeds = (value) => {
   });
 };
 
-const handlePosts = (elements, initialState, path, value, i18nInstance) => {
+const handlePosts = (value, i18nInstance) => {
   const list = document.querySelector('.posts > .card > ul');
   // list.textContent = '';
 
   value.map(({
-    title, link, description, id, feedId,
+    title, link, id,
   }) => {
     const item = document.createElement('li');
     const titleElement = document.createElement('a');
@@ -118,8 +116,6 @@ const handlerClickedPost = (elements, initialState, value) => {
 };
 
 export default (elements, initialState, i18nInstance) => (path, value) => {
-  // console.log('RENDER >> path:', path, '>> value:', value); // debug
-
   switch (path) {
     case 'initiated':
       elements.content.feeds.append(handleInit('Фиды'));
@@ -139,7 +135,7 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
       break;
 
     case 'content.lists.newPosts':
-      handlePosts(elements, initialState, path, value, i18nInstance);
+      handlePosts(value, i18nInstance);
       break;
 
     case 'ui.activePostId':
@@ -150,7 +146,3 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
       throw new Error(`Unknown path: ${path}`);
   }
 };
-
-// console.log('>>>>>>>>>> POSTS <<<<<<')
-// console.log(value)
-// console.log('>>>>>>>>>><<<<<<')
