@@ -62,7 +62,8 @@ const run = (initialState, i18nInstance) => {
 
   setLocale({
     string: {
-      url: { key: 'feedback.invalidUrl' },
+      url: 'feedback.invalidUrl',
+      // url: { message: 'feedback.invalidUrl' },
     },
   });
 
@@ -70,10 +71,10 @@ const run = (initialState, i18nInstance) => {
 
   const schema = yup.string()
     .trim()
-    // .url()
+    .url()
     // .test('valid-url', { key: 'feedback.invalidUrl' }, function isValidUrl(value) {
     // })
-    .matches(regMatch, { message: 'feedback.invalidUrl', excludeEmptyString: true }) // excludeEmptyString option make empty strings invalid
+    .matches(regMatch, { message: 'feedback.parseError', excludeEmptyString: true }) // excludeEmptyString option make empty strings invalid
     .test('not-one-of', 'feedback.alreadyExists', function isNotOneOf(value) {
       const { urls } = this.options;
       return !urls.includes(value);
@@ -100,31 +101,27 @@ const run = (initialState, i18nInstance) => {
   const parseXML = (xml) => {
     const parser = new DOMParser();
 
-    try {
-      const parsed = parser.parseFromString(xml, 'text/xml');
-      const feedTitle = parsed.documentElement.getElementsByTagName('title')[0].textContent;
-      const feedDescription = parsed.documentElement.getElementsByTagName('description')[0].textContent;
+    const parsed = parser.parseFromString(xml, 'text/xml');
+    const feedTitle = parsed.documentElement.getElementsByTagName('title')[0].textContent;
+    const feedDescription = parsed.documentElement.getElementsByTagName('description')[0].textContent;
 
-      const feed = {
-        title: feedTitle,
-        description: feedDescription,
-      };
+    const feed = {
+      title: feedTitle,
+      description: feedDescription,
+    };
 
-      const items = parsed.documentElement.getElementsByTagName('item');
+    const items = parsed.documentElement.getElementsByTagName('item');
 
-      const postsInit = [...items].map((item) => {
-        const title = item.querySelector('title').textContent;
-        const link = item.querySelector('link').textContent;
-        const description = item.querySelector('description').textContent;
+    const postsInit = [...items].map((item) => {
+      const title = item.querySelector('title').textContent;
+      const link = item.querySelector('link').textContent;
+      const description = item.querySelector('description').textContent;
 
-        return { title, link, description };
-      });
-      const posts = postsInit.reverse();
+      return { title, link, description };
+    });
+    const posts = postsInit.reverse();
 
-      return { feed, posts };
-    } catch (error) {
-      initialState.uiState.state = 'feedback.parseError';
-    }
+    return { feed, posts };
   };
 
   const addIDs = (coll) => {
