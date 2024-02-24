@@ -74,7 +74,7 @@ const run = (initialState, i18nInstance) => {
     // .test('valid-url', { key: 'feedback.invalidUrl' }, function isValidUrl(value) {
     // })
     .matches(regMatch, { message: 'feedback.invalidUrl', excludeEmptyString: true }) // excludeEmptyString option make empty strings invalid
-    .test('not-one-of', { key: 'feedback.alreadyExists' }, function isNotOneOf(value) {
+    .test('not-one-of', 'feedback.alreadyExists', function isNotOneOf(value) {
       const { urls } = this.options;
       return !urls.includes(value);
     })
@@ -150,7 +150,6 @@ const run = (initialState, i18nInstance) => {
   };
 
   const getXML = (response, url) => {
-    console.log(response); // debug
     if (response) {
       const wasUrlAdded = initialState.content.lists.urls.includes(url);
       if (!wasUrlAdded) {
@@ -200,7 +199,7 @@ const run = (initialState, i18nInstance) => {
         initialState.subscribed = true;
         runTimer();
       })
-      .catch((err) => handleError(err));
+      .catch((err) => { console.log('axios'); console.log(err); handleError(err); });
   }
 
   elements.form.addEventListener('submit', (e) => {
@@ -214,6 +213,13 @@ const run = (initialState, i18nInstance) => {
       // .then(console.log) // debug
       .then(() => handleUrl(submittedUrl, e))
       .then(() => { state.form.feedback = i18nInstance.t('feedback.success'); })
+      // .catch((err) => {
+      //   console.log('validate');
+      //   console.log(err.message);
+      //   state.form.feedback = i18nInstance.t(err.message);
+      //   state.buttons.addDisabled = false;
+      // });
+      // .catch((err) => {console.log('validate'); console.log(err); handleError(err)});
       .catch((err) => handleError(err));
   });
 
