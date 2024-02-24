@@ -162,7 +162,7 @@ const run = (initialState, i18nInstance) => {
         initialState.content.lists.urls.forEach((url) => handleUrl(url));
         initialState.timerOn = true;
         setTimeout(runUrlUpdate, 5000);
-      }, 5000);
+      }, 0);
     }
   };
 
