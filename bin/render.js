@@ -5,6 +5,16 @@ no-console,
 array-callback-return,
 
 */
+
+const renderInitialInterface = (elements, i18nInstance) => {
+  elements.mainInterface.title.textContent = i18nInstance.t('mainInterface.title');
+  elements.mainInterface.subtitle.textContent = i18nInstance.t('mainInterface.subtitle');
+  elements.mainInterface.title.textContent = i18nInstance.t('mainInterface.title');
+  elements.mainInterface.formPlaceholder.textContent = i18nInstance.t('mainInterface.formPlaceholder');
+  elements.buttons.add.textContent = i18nInstance.t('buttons.add');
+};
+
+
 const handleInit = (titleName) => {
   const container = document.createElement('div');
   const containerForTitle = document.createElement('div');
@@ -24,8 +34,8 @@ const handleInit = (titleName) => {
   return container;
 };
 
-const handleFeedback = (elements, initialState, value, i18nInstance) => {
-  if (value === 'RSS успешно загружен') {
+const handleFeedback = (elements, initialState, i18nInstance) => {
+  if (initialState.isValid) {
     elements.input.classList.remove('is-invalid');
     elements.input.value = '';
     elements.input.focus();
@@ -117,12 +127,12 @@ const handlerClickedPost = (elements, initialState, value) => {
 export default (elements, initialState, i18nInstance) => (path, value) => {
   switch (path) {
     case 'initiated':
-      elements.content.feeds.append(handleInit('Фиды'));
-      elements.content.posts.append(handleInit('Посты'));
+      elements.content.feeds.append(handleInit(i18nInstance.t('mainInterface.feedsTitle')));
+      elements.content.posts.append(handleInit(i18nInstance.t('mainInterface.postsTitle')));
       break;
 
     case 'form.feedback':
-      handleFeedback(elements, initialState, value, i18nInstance);
+      handleFeedback(elements, initialState, i18nInstance);
       break;
 
     case 'buttons.addDisabled':
@@ -139,6 +149,10 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
 
     case 'ui.activePostId':
       handlerClickedPost(elements, initialState, value);
+      break;
+
+    case 'firstRender':
+      renderInitialInterface(elements, i18nInstance);
       break;
 
     default:

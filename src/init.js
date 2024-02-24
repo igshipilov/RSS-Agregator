@@ -21,6 +21,8 @@ const run = (initialState, i18nInstance) => {
       title: document.querySelector('.display-3'),
       subtitle: document.querySelector('.lead'),
       formPlaceholder: document.querySelector('[for="url-input"]'),
+      postsTitle: document.querySelector('.posts > div > div > h2'),
+      feedsTitle: document.querySelector('.feeds > div > div > h2')
     },
     buttons: {
       add: document.querySelector('[aria-label="add"]'),
@@ -43,6 +45,8 @@ const run = (initialState, i18nInstance) => {
   };
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
+  
+  state.firstRender = true;
 
   setLocale({
     string: {
@@ -137,6 +141,7 @@ const run = (initialState, i18nInstance) => {
   };
 
   const handleError = (err) => {
+    initialState.isValid = false;
     state.form.feedback = i18nInstance.t(err.message);
     state.buttons.addDisabled = false;
   };
@@ -161,13 +166,9 @@ const run = (initialState, i18nInstance) => {
       .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
       .then(() => resolve())
       .catch((err) => {
-        console.log('>> axios.catch(err):');
-        console.log(err);
         if (err.code === 'ERR_NETWORK') {
           reject(new Error('feedback.networkError'));
         } else {
-          console.log('>> axios, else → handleError(err):');
-          console.log(handleError(err));
           handleError(err);
           reject(err);
         }
@@ -194,11 +195,11 @@ const run = (initialState, i18nInstance) => {
         state.buttons.addDisabled = false;
         runTimer();
       })
-      .then(() => { state.form.feedback = i18nInstance.t('feedback.success'); })
+      .then(() => { 
+        initialState.isValid = true;
+        state.form.feedback = i18nInstance.t('feedback.success');
+      })
       .catch((err) => {
-        console.log('schema.validate.catch(err):');
-        console.log(err);
-        console.log('schema.validate.catch(err) --> handleError(err):');
         handleError(err);
       });
   });
@@ -223,7 +224,12 @@ const run = (initialState, i18nInstance) => {
 };
 
 export default () => {
+  const defaultLanguage = 'ru';
+
   const initialState = {
+    lng: 'en',
+    isValid: null,
+    firstRender: null,
     initiated: false,
     content: {
       lists: {
@@ -244,12 +250,11 @@ export default () => {
     },
   };
 
-  const defaultLanguage = 'ru';
 
   const i18nInstance = i18next.createInstance();
 
   i18nInstance.init({
-    lng: defaultLanguage,
+    lng: initialState.lng,
     debug: false,
     resources,
   }).then(run(initialState, i18nInstance));

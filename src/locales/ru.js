@@ -14,10 +14,12 @@ export default {
       parseError: 'Ресурс не содержит валидный RSS',
       success: 'RSS успешно загружен',
     },
-    titles: {
+    mainInterface: {
       title: 'RSS агрегатор',
-      subtitle: 'Отобранные (вами) новости',
+      subtitle: 'Начните читать RSS сегодня! Это легко, это красиво.',
+      formPlaceholder: 'Ссылка RSS',
+      postsTitle: 'Посты',
+      feedsTitle: 'Фиды',
     },
-    formPlaceholder: 'Ссылка RSS',
   },
 };

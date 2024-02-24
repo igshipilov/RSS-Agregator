@@ -14,10 +14,12 @@ export default {
       parseError: 'The resource does not contain valid RSS',
       success: 'RSS uploaded successfully',
     },
-    titles: {
-      title: 'RSS agregator',
-      subtitle: "Start reading RSS today! It's simple, it's beauty.",
+    mainInterface: {
+      title: 'RSS aggregator',
+      subtitle: "Start reading RSS today! It's simple, it's beautiful.",
+      formPlaceholder: 'RSS Link',
+      postsTitle: 'Posts',
+      feedsTitle: 'Feeds',
     },
-    formPlaceholder: 'RSS link',
   },
 };
