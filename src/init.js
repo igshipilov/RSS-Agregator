@@ -3,7 +3,6 @@
 no-param-reassign,
 no-console,
 consistent-return,
-no-use-before-define,
 
 */
 
@@ -147,27 +146,24 @@ const run = (initialState, i18nInstance) => {
   };
 
   const getXML = (response, url) => {
-    if (response) {
-      const wasUrlAdded = initialState.content.lists.urls.includes(url);
-      if (!wasUrlAdded) {
-        initialState.content.lists.urls.push(url);
-      }
-      state.initiated = true; // триггерим первичный рендер (заголовки "Фиды" и "Посты", <ul>)
-
-      return response.data.contents; // xml → typeof: string
+    const wasUrlAdded = initialState.content.lists.urls.includes(url);
+    if (!wasUrlAdded) {
+      initialState.content.lists.urls.push(url);
     }
-    throw new Error('feedback.networkError');
+    state.initiated = true; // триггерим первичный рендер (заголовки "Фиды" и "Посты", <ul>)
+
+    return response.data.contents; // xml → typeof: string
   };
 
-  const runTimer = () => {
-    if (initialState.subscribed === true && initialState.timerOn === false) {
-      setTimeout(function runUrlUpdate() {
-        initialState.content.lists.urls.forEach((url) => handleUrl(url));
-        initialState.timerOn = true;
-        setTimeout(runUrlUpdate, 5000);
-      }, 0);
-    }
-  };
+  // const runTimer = () => {
+  //   if (initialState.subscribed === true && initialState.timerOn === false) {
+  //     setTimeout(function runUrlUpdate() {
+  //       initialState.content.lists.urls.forEach((url) => handleUrl(url));
+  //       initialState.timerOn = true;
+  //       setTimeout(runUrlUpdate, 5000);
+  //     }, 0);
+  //   }
+  // };
 
   const handleError = (err) => {
     state.form.feedback = i18nInstance.t(err.message);
@@ -187,15 +183,20 @@ const run = (initialState, i18nInstance) => {
     const proxyDisabledCache = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
 
     axios.get(`${proxyDisabledCache}${encodeURIComponent(`${url}`)}`)
+    // axios.get('http://localhost:5005/') // debug
+      // .then(() => { throw new Error('feedback.networkError') }) //debug
+      // .then((response) => { console.log('>> response:'), console.log(response) }) // debug
+      .catch(() => handleError('feedback.networkError'))
       .then((response) => getXML(response, url))
       .then((xml) => parseXML(xml))
       .then((coll) => addIDs(coll))
       .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
-      .then(() => {
-        state.buttons.addDisabled = false;
-        initialState.subscribed = true;
-        runTimer();
-      })
+      // .then(() => {
+      //   state.buttons.addDisabled = false;
+      //   initialState.subscribed = true;
+      //   runTimer();
+      // })
+      // .then(() => { state.form.feedback = i18nInstance.t('feedback.success') })
       .catch((err) => { console.log('axios'); console.log(err); handleError(err); });
   }
 
@@ -205,18 +206,22 @@ const run = (initialState, i18nInstance) => {
     const formData = new FormData(e.target);
     const submittedUrl = formData.get('url');
 
+    const runTimer = () => {
+      setTimeout(function runUrlUpdate() {
+        initialState.content.lists.urls.forEach((url) => handleUrl(url));
+        initialState.timerOn = true;
+        setTimeout(runUrlUpdate, 5000);
+      }, 0);
+    };
+
     // в schema.validate второй аргумент { urls: ... } нужен для yup.test('not-one-of')
     schema.validate(submittedUrl, { urls: initialState.content.lists.urls })
-      // .then(console.log) // debug
       .then(() => handleUrl(submittedUrl, e))
+      .then(() => {
+        state.buttons.addDisabled = false;
+        runTimer();
+      })
       .then(() => { state.form.feedback = i18nInstance.t('feedback.success'); })
-      // .catch((err) => {
-      //   console.log('validate');
-      //   console.log(err.message);
-      //   state.form.feedback = i18nInstance.t(err.message);
-      //   state.buttons.addDisabled = false;
-      // });
-      // .catch((err) => {console.log('validate'); console.log(err); handleError(err)});
       .catch((err) => handleError(err));
   });
 
@@ -241,7 +246,7 @@ const run = (initialState, i18nInstance) => {
 
 export default () => {
   const initialState = {
-    subscribed: false,
+    // subscribed: false,
     timerOn: false,
     initiated: false,
     content: {
