@@ -170,7 +170,38 @@ const run = (initialState, i18nInstance) => {
     state.buttons.addDisabled = false;
   };
 
-  function handleUrl(url, e) {
+  // const handleUrl = (url, e) => {
+  //   const isSubmitted = () => {
+  //     try { return !!e; } catch (err) { return false; }
+  //   };
+
+  //   // block "Add" button on 'submit' event only (not block it on autoupdates)
+  //   if (isSubmitted()) {
+  //     state.buttons.addDisabled = true;
+  //   }
+
+  //   const proxyDisabledCache = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
+
+  //   // axios.get(`${proxyDisabledCache}${encodeURIComponent(`${url}`)}`) // work
+  //   axios.get('http://localhost:5005/') // debug
+  //     .then((response) => { console.log('>> response:'), console.log(response) }) // debug
+  //     .then((response) => getXML(response, url))
+  //     .then((xml) => parseXML(xml))
+  //     .then((coll) => addIDs(coll))
+  //     .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
+  //     // .catch((err) => { console.log('axios'); console.log(err); handleError(err); }); // debug
+  //     .catch((err) => {
+  //       if (err.message === 'feedback.networkError') {
+  //         return Promise.reject(new Error ('feedback.networkError'))
+  //       } else {
+  //         console.log('>> axios, else → handleError(err):')
+  //         console.log(handleError(err))
+  //         handleError(err);
+  //       }
+  //     });
+  // };
+
+  const handleUrl = (url, e) => new Promise((resolve, reject) => {
     const isSubmitted = () => {
       try { return !!e; } catch (err) { return false; }
     };
@@ -182,23 +213,30 @@ const run = (initialState, i18nInstance) => {
 
     const proxyDisabledCache = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
 
-    axios.get(`${proxyDisabledCache}${encodeURIComponent(`${url}`)}`)
+    axios.get(`${proxyDisabledCache}${encodeURIComponent(`${url}`)}`) // work
     // axios.get('http://localhost:5005/') // debug
-      // .then(() => { throw new Error('feedback.networkError') }) //debug
-      // .then((response) => { console.log('>> response:'), console.log(response) }) // debug
-      .catch(() => handleError('feedback.networkError'))
       .then((response) => getXML(response, url))
       .then((xml) => parseXML(xml))
       .then((coll) => addIDs(coll))
       .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
-      // .then(() => {
-      //   state.buttons.addDisabled = false;
-      //   initialState.subscribed = true;
-      //   runTimer();
-      // })
-      // .then(() => { state.form.feedback = i18nInstance.t('feedback.success') })
-      .catch((err) => { console.log('axios'); console.log(err); handleError(err); });
-  }
+      .then(() => resolve())
+    // .catch((err) => { console.log('axios'); console.log(err); handleError(err); }); // debug
+    // .catch((err) => {
+    //   reject(err);
+    // });
+      .catch((err) => {
+        // console.log('>> axios.catch(err):');
+        // console.log(err);
+        if (err.code === 'ERR_NETWORK') {
+          reject(new Error('feedback.networkError'));
+        } else {
+          // console.log('>> axios, else → handleError(err):')
+          // console.log(handleError(err))
+          handleError(err);
+          reject(err);
+        }
+      });
+  });
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -217,12 +255,22 @@ const run = (initialState, i18nInstance) => {
     // в schema.validate второй аргумент { urls: ... } нужен для yup.test('not-one-of')
     schema.validate(submittedUrl, { urls: initialState.content.lists.urls })
       .then(() => handleUrl(submittedUrl, e))
+      // .then((handleUrlResult) => {
+    // console.log('>> schema.validate.then(handleUrl(submittedUrl, e)):');
+    // console.log(handleUrlResult);
+      // })
       .then(() => {
         state.buttons.addDisabled = false;
         runTimer();
       })
       .then(() => { state.form.feedback = i18nInstance.t('feedback.success'); })
-      .catch((err) => handleError(err));
+      .catch((err) => {
+        // console.log('schema.validate.catch(err):');
+        // console.log(err);
+
+        // console.log('schema.validate.catch(err) --> handleError(err):');
+        handleError(err);
+      });
   });
 
   const modal = elements.modal.window;
