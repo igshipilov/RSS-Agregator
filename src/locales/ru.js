@@ -8,13 +8,12 @@ export default {
       view: 'Просмотр',
     },
     feedback: {
-      invalidUrl: 'Ссылка должна быть валидным URL',
       alreadyExists: 'RSS уже существует',
-      parseError: 'Ресурс не содержит валидный RSS',
+      invalidUrl: 'Ссылка должна быть валидным URL',
       networkError: 'Ошибка сети',
+      parseError: 'Ресурс не содержит валидный RSS',
       success: 'RSS успешно загружен',
     },
-    example: {},
     titles: {
       title: 'RSS агрегатор',
       subtitle: 'Отобранные (вами) новости',

@@ -8,13 +8,12 @@ export default {
       view: 'View',
     },
     feedback: {
-      invalidUrl: 'Must be valid URL',
       alreadyExists: 'RSS already exists',
-      parseError: 'Unable to read file',
-      networkError: 'Network response problem',
-      success: 'RSS successfully uploaded',
+      invalidUrl: 'The link must be a valid URL',
+      networkError: 'Network error',
+      parseError: 'The resource does not contain valid RSS',
+      success: 'RSS uploaded successfully',
     },
-    example: {},
     titles: {
       title: 'RSS agregator',
       subtitle: "Start reading RSS today! It's simple, it's beauty.",

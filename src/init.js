@@ -15,28 +15,13 @@ import onChange from 'on-change';
 import resources from './locales/index.js';
 import render from '../bin/render.js';
 
-/*
-
-ФИДЫ ДЛЯ ТЕСТОВ
-✅ Рабочие:
-https://lorem-rss.hexlet.app/feed?unit=second
-https://buzzfeed.com/world.xml
-https://ru.hexlet.io/lessons.rss
-https://lorem-rss.herokuapp.com/feed?unit=second
-
-❌ Нерабочие:
-lorem-rss.hexlet.app/feed
-buzzfeed.com/world.xml
-
-*/
-
 const run = (initialState, i18nInstance) => {
   const elements = {
-    titles: {
+    mainInterface: {
       title: document.querySelector('.display-3'),
       subtitle: document.querySelector('.lead'),
+      formPlaceholder: document.querySelector('[for="url-input"]'),
     },
-    formPlaceholder: document.querySelector('[for="url-input"]'),
     buttons: {
       add: document.querySelector('[aria-label="add"]'),
     },
@@ -62,7 +47,6 @@ const run = (initialState, i18nInstance) => {
   setLocale({
     string: {
       url: 'feedback.invalidUrl',
-      // url: { message: 'feedback.invalidUrl' },
     },
   });
 
@@ -71,8 +55,6 @@ const run = (initialState, i18nInstance) => {
   const schema = yup.string()
     .trim()
     .url()
-    // .test('valid-url', { key: 'feedback.invalidUrl' }, function isValidUrl(value) {
-    // })
     .matches(regMatch, { message: 'feedback.parseError', excludeEmptyString: true }) // excludeEmptyString option make empty strings invalid
     .test('not-one-of', 'feedback.alreadyExists', function isNotOneOf(value) {
       const { urls } = this.options;
@@ -124,7 +106,6 @@ const run = (initialState, i18nInstance) => {
   };
 
   const addIDs = (coll) => {
-    // const { title: feedTitle, description: feedDescription } = coll.feed;
     const resultColl = coll;
 
     const setId = (currentTitle, type) => {
@@ -150,63 +131,22 @@ const run = (initialState, i18nInstance) => {
     if (!wasUrlAdded) {
       initialState.content.lists.urls.push(url);
     }
-    state.initiated = true; // триггерим первичный рендер (заголовки "Фиды" и "Посты", <ul>)
+    state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
 
     return response.data.contents; // xml → typeof: string
   };
-
-  // const runTimer = () => {
-  //   if (initialState.subscribed === true && initialState.timerOn === false) {
-  //     setTimeout(function runUrlUpdate() {
-  //       initialState.content.lists.urls.forEach((url) => handleUrl(url));
-  //       initialState.timerOn = true;
-  //       setTimeout(runUrlUpdate, 5000);
-  //     }, 0);
-  //   }
-  // };
 
   const handleError = (err) => {
     state.form.feedback = i18nInstance.t(err.message);
     state.buttons.addDisabled = false;
   };
 
-  // const handleUrl = (url, e) => {
-  //   const isSubmitted = () => {
-  //     try { return !!e; } catch (err) { return false; }
-  //   };
-
-  //   // block "Add" button on 'submit' event only (not block it on autoupdates)
-  //   if (isSubmitted()) {
-  //     state.buttons.addDisabled = true;
-  //   }
-
-  //   const proxyDisabledCache = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
-
-  //   // axios.get(`${proxyDisabledCache}${encodeURIComponent(`${url}`)}`) // work
-  //   axios.get('http://localhost:5005/') // debug
-  //     .then((response) => { console.log('>> response:'), console.log(response) }) // debug
-  //     .then((response) => getXML(response, url))
-  //     .then((xml) => parseXML(xml))
-  //     .then((coll) => addIDs(coll))
-  //     .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
-  //     // .catch((err) => { console.log('axios'); console.log(err); handleError(err); }); // debug
-  //     .catch((err) => {
-  //       if (err.message === 'feedback.networkError') {
-  //         return Promise.reject(new Error ('feedback.networkError'))
-  //       } else {
-  //         console.log('>> axios, else → handleError(err):')
-  //         console.log(handleError(err))
-  //         handleError(err);
-  //       }
-  //     });
-  // };
-
   const handleUrl = (url, e) => new Promise((resolve, reject) => {
     const isSubmitted = () => {
       try { return !!e; } catch (err) { return false; }
     };
 
-    // block "Add" button on 'submit' event only (not block it on autoupdates)
+    // blocks "Add" button on 'submit' event only (not block it on autoupdates)
     if (isSubmitted()) {
       state.buttons.addDisabled = true;
     }
@@ -220,18 +160,14 @@ const run = (initialState, i18nInstance) => {
       .then((coll) => addIDs(coll))
       .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
       .then(() => resolve())
-    // .catch((err) => { console.log('axios'); console.log(err); handleError(err); }); // debug
-    // .catch((err) => {
-    //   reject(err);
-    // });
       .catch((err) => {
-        // console.log('>> axios.catch(err):');
-        // console.log(err);
+        console.log('>> axios.catch(err):');
+        console.log(err);
         if (err.code === 'ERR_NETWORK') {
           reject(new Error('feedback.networkError'));
         } else {
-          // console.log('>> axios, else → handleError(err):')
-          // console.log(handleError(err))
+          console.log('>> axios, else → handleError(err):');
+          console.log(handleError(err));
           handleError(err);
           reject(err);
         }
@@ -247,28 +183,22 @@ const run = (initialState, i18nInstance) => {
     const runTimer = () => {
       setTimeout(function runUrlUpdate() {
         initialState.content.lists.urls.forEach((url) => handleUrl(url));
-        initialState.timerOn = true;
         setTimeout(runUrlUpdate, 5000);
-      }, 0);
+      }, 5000);
     };
 
-    // в schema.validate второй аргумент { urls: ... } нужен для yup.test('not-one-of')
+    // in schema.validate second arg { urls: ... } is used for: yup.test('not-one-of')
     schema.validate(submittedUrl, { urls: initialState.content.lists.urls })
       .then(() => handleUrl(submittedUrl, e))
-      // .then((handleUrlResult) => {
-    // console.log('>> schema.validate.then(handleUrl(submittedUrl, e)):');
-    // console.log(handleUrlResult);
-      // })
       .then(() => {
         state.buttons.addDisabled = false;
         runTimer();
       })
       .then(() => { state.form.feedback = i18nInstance.t('feedback.success'); })
       .catch((err) => {
-        // console.log('schema.validate.catch(err):');
-        // console.log(err);
-
-        // console.log('schema.validate.catch(err) --> handleError(err):');
+        console.log('schema.validate.catch(err):');
+        console.log(err);
+        console.log('schema.validate.catch(err) --> handleError(err):');
         handleError(err);
       });
   });
@@ -294,8 +224,6 @@ const run = (initialState, i18nInstance) => {
 
 export default () => {
   const initialState = {
-    // subscribed: false,
-    timerOn: false,
     initiated: false,
     content: {
       lists: {
@@ -316,7 +244,7 @@ export default () => {
     },
   };
 
-  const defaultLanguage = 'ru';
+  const defaultLanguage = 'en';
 
   const i18nInstance = i18next.createInstance();
 
