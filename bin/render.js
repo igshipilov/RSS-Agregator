@@ -14,7 +14,6 @@ const renderInitialInterface = (elements, i18nInstance) => {
   elements.buttons.add.textContent = i18nInstance.t('buttons.add');
 };
 
-
 const handleInit = (titleName) => {
   const container = document.createElement('div');
   const containerForTitle = document.createElement('div');

@@ -22,7 +22,7 @@ const run = (initialState, i18nInstance) => {
       subtitle: document.querySelector('.lead'),
       formPlaceholder: document.querySelector('[for="url-input"]'),
       postsTitle: document.querySelector('.posts > div > div > h2'),
-      feedsTitle: document.querySelector('.feeds > div > div > h2')
+      feedsTitle: document.querySelector('.feeds > div > div > h2'),
     },
     buttons: {
       add: document.querySelector('[aria-label="add"]'),
@@ -45,7 +45,7 @@ const run = (initialState, i18nInstance) => {
   };
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
-  
+
   state.firstRender = true;
 
   setLocale({
@@ -195,7 +195,7 @@ const run = (initialState, i18nInstance) => {
         state.buttons.addDisabled = false;
         runTimer();
       })
-      .then(() => { 
+      .then(() => {
         initialState.isValid = true;
         state.form.feedback = i18nInstance.t('feedback.success');
       })
@@ -227,7 +227,7 @@ export default () => {
   const defaultLanguage = 'ru';
 
   const initialState = {
-    lng: 'en',
+    lng: defaultLanguage,
     isValid: null,
     firstRender: null,
     initiated: false,
@@ -249,7 +249,6 @@ export default () => {
       activePostId: null,
     },
   };
-
 
   const i18nInstance = i18next.createInstance();
 
