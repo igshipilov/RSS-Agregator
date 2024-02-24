@@ -22,6 +22,7 @@ import render from '../bin/render.js';
 ✅ Рабочие:
 https://lorem-rss.hexlet.app/feed?unit=second
 https://buzzfeed.com/world.xml
+https://ru.hexlet.io/lessons.rss
 https://lorem-rss.herokuapp.com/feed?unit=second
 
 ❌ Нерабочие:
@@ -65,10 +66,15 @@ const run = (initialState, i18nInstance) => {
     },
   });
 
+  const regMatch = /(https:\/\/)(.*)(?=\/)\/(feed|.*\.rss|.*\.xml)/gm;
+
   const schema = yup.string()
     .trim()
-    .url()
-    .test('not-one-of', { key: 'feedback.alreadyExists' }, function checkNotOneOf(value) {
+    // .url()
+    // .test('valid-url', { key: 'feedback.invalidUrl' }, function isValidUrl(value) {
+    // })
+    .matches(regMatch, { message: 'feedback.invalidUrl', excludeEmptyString: true }) // excludeEmptyString option make empty strings invalid
+    .test('not-one-of', { key: 'feedback.alreadyExists' }, function isNotOneOf(value) {
       const { urls } = this.options;
       return !urls.includes(value);
     })
@@ -144,6 +150,7 @@ const run = (initialState, i18nInstance) => {
   };
 
   const getXML = (response, url) => {
+    console.log(response); // debug
     if (response) {
       const wasUrlAdded = initialState.content.lists.urls.includes(url);
       if (!wasUrlAdded) {
@@ -164,6 +171,11 @@ const run = (initialState, i18nInstance) => {
         setTimeout(runUrlUpdate, 5000);
       }, 0);
     }
+  };
+
+  const handleError = (err) => {
+    state.form.feedback = i18nInstance.t(err.message);
+    state.buttons.addDisabled = false;
   };
 
   function handleUrl(url, e) {
@@ -188,10 +200,7 @@ const run = (initialState, i18nInstance) => {
         initialState.subscribed = true;
         runTimer();
       })
-      .catch((err) => { // обработчик ошибки Сети
-        state.form.feedback = i18nInstance.t(err.message);
-        state.buttons.addDisabled = false;
-      });
+      .catch((err) => handleError(err));
   }
 
   elements.form.addEventListener('submit', (e) => {
@@ -202,12 +211,10 @@ const run = (initialState, i18nInstance) => {
 
     // в schema.validate второй аргумент { urls: ... } нужен для yup.test('not-one-of')
     schema.validate(submittedUrl, { urls: initialState.content.lists.urls })
+      // .then(console.log) // debug
       .then(() => handleUrl(submittedUrl, e))
       .then(() => { state.form.feedback = i18nInstance.t('feedback.success'); })
-      .catch((err) => { // обработчик ошибок ввода (юзер ошибся)
-        state.form.feedback = err.errors.map((curErr) => i18nInstance.t(curErr.key));
-        state.buttons.addDisabled = false;
-      });
+      .catch((err) => handleError(err));
   });
 
   const modal = elements.modal.window;
