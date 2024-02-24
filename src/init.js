@@ -184,7 +184,7 @@ const run = (initialState, i18nInstance) => {
       setTimeout(function runUrlUpdate() {
         initialState.content.lists.urls.forEach((url) => handleUrl(url));
         setTimeout(runUrlUpdate, 5000);
-      }, 5000);
+      }, 0);
     };
 
     // in schema.validate second arg { urls: ... } is used for: yup.test('not-one-of')
