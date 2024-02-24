@@ -244,7 +244,7 @@ export default () => {
     },
   };
 
-  const defaultLanguage = 'en';
+  const defaultLanguage = 'ru';
 
   const i18nInstance = i18next.createInstance();
 
