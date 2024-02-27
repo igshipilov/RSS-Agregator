@@ -67,7 +67,7 @@ const run = (initialState, i18nInstance) => {
     console.log('>> response:');
     console.log(response);
 
-    const responseData = JSON.parse(JSON.stringify(response.data))
+    const responseData = JSON.parse(JSON.stringify(response.data));
     console.log('>> responseData:');
     console.log(responseData);
 
