@@ -36,7 +36,7 @@ const handleInit = (titleName) => {
 const handleFeedback = (elements, initialState, i18nInstance) => {
   if (initialState.isValid) {
     elements.input.classList.remove('is-invalid');
-    elements.input.value = '';
+    elements.form.reset();
     elements.input.focus();
     elements.textFeedback.classList.remove('text-danger');
     elements.textFeedback.classList.add('text-success');
@@ -136,6 +136,7 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
 
     case 'buttons.addDisabled':
       elements.buttons.add.toggleAttribute('disabled');
+      elements.input.toggleAttribute('readonly');
       break;
 
     case 'content.lists.feeds':

@@ -33,12 +33,20 @@ const config = {
       { test: /\.css$/, use: ['style-loader', 'css-loader', 'postcss-loader'] },
       {
         test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        use: 'url-loader?limit=10000',
+        use: 'asset/inline',
       },
       {
         test: /\.(ttf|eot|svg)(\?[\s\S]+)?$/,
-        use: 'file-loader',
+        type: 'asset/resource',
       },
+      // {
+      //   test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+      //   use: 'url-loader?limit=10000',
+      // },
+      // {
+      //   test: /\.(ttf|eot|svg)(\?[\s\S]+)?$/,
+      //   use: 'file-loader',
+      // },
     ],
   },
 };

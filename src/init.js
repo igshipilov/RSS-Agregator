@@ -54,32 +54,29 @@ const run = (initialState, i18nInstance) => {
     },
   });
 
-  const regMatch = /(https:\/\/)(.*)(?=\/)\/(feed|.*\.rss|.*\.xml)/gm;
-
   const schema = yup.string()
     .trim()
     .url()
-    .matches(regMatch, { message: 'feedback.parseError', excludeEmptyString: true }) // excludeEmptyString option make empty strings invalid
     .test('not-one-of', 'feedback.alreadyExists', function isNotOneOf(value) {
       const { urls } = this.options;
       return !urls.includes(value);
     })
     .required();
 
-  const addFeedsAndPostsToState = (collFeedsAndPosts, isSubmitted) => {
-    const { posts, feed } = collFeedsAndPosts;
+  const getXML = (response, url) => {
+    const responseData = response.data;
+    const status = responseData.status.http_code;
 
-    const currentPosts = initialState.content.lists.posts;
-    const newPosts = _.differenceWith(posts, currentPosts, _.isEqual);
-    const hasNewPosts = !_.isEmpty(newPosts);
+    if (status !== 200) {
+      throw new Error('feedback.parseError');
+    } else {
+      const wasUrlAdded = initialState.content.lists.urls.includes(url);
+      if (!wasUrlAdded) {
+        initialState.content.lists.urls.push(url);
+      }
+      state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
 
-    if (isSubmitted) {
-      state.content.lists.feeds.push(feed);
-    }
-    if (hasNewPosts) {
-      initialState.content.lists.posts.push(...newPosts);
-      state.content.lists.newPosts.push(...newPosts);
-      initialState.content.lists.newPosts = [];
+      return response.data.contents; // xml → typeof: string
     }
   };
 
@@ -130,14 +127,21 @@ const run = (initialState, i18nInstance) => {
     return (resultColl);
   };
 
-  const getXML = (response, url) => {
-    const wasUrlAdded = initialState.content.lists.urls.includes(url);
-    if (!wasUrlAdded) {
-      initialState.content.lists.urls.push(url);
-    }
-    state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
+  const addFeedsAndPostsToState = (collFeedsAndPosts, isSubmitted) => {
+    const { posts, feed } = collFeedsAndPosts;
 
-    return response.data.contents; // xml → typeof: string
+    const currentPosts = initialState.content.lists.posts;
+    const newPosts = _.differenceWith(posts, currentPosts, _.isEqual);
+    const hasNewPosts = !_.isEmpty(newPosts);
+
+    if (isSubmitted) {
+      state.content.lists.feeds.push(feed);
+    }
+    if (hasNewPosts) {
+      initialState.content.lists.posts.push(...newPosts);
+      state.content.lists.newPosts.push(...newPosts);
+      initialState.content.lists.newPosts = [];
+    }
   };
 
   const handleError = (err) => {
@@ -158,8 +162,7 @@ const run = (initialState, i18nInstance) => {
 
     const proxyDisabledCache = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
 
-    axios.get(`${proxyDisabledCache}${encodeURIComponent(`${url}`)}`) // work
-    // axios.get('http://localhost:5005/') // debug
+    axios.get(`${proxyDisabledCache}${encodeURIComponent(`${url}`)}`)
       .then((response) => getXML(response, url))
       .then((xml) => parseXML(xml))
       .then((coll) => addIDs(coll))
@@ -185,7 +188,7 @@ const run = (initialState, i18nInstance) => {
       setTimeout(function runUrlUpdate() {
         initialState.content.lists.urls.forEach((url) => handleUrl(url));
         setTimeout(runUrlUpdate, 5000);
-      }, 0);
+      }, 5000);
     };
 
     // in schema.validate second arg { urls: ... } is used for: yup.test('not-one-of')
@@ -197,6 +200,7 @@ const run = (initialState, i18nInstance) => {
       })
       .then(() => {
         initialState.isValid = true;
+        state.form.feedback = null;
         state.form.feedback = i18nInstance.t('feedback.success');
       })
       .catch((err) => {
