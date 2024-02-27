@@ -66,14 +66,14 @@ const run = (initialState, i18nInstance) => {
   const getXML = (response, url) => {
     const responseData = response.data;
     const statusCode = responseData.status.http_code;
-    // console.log('>> response:');
-    // console.log(response);
+    console.log('>> response:');
+    console.log(response);
 
-    // console.log('>> responseData:');
-    // console.log(responseData);
+    console.log('>> responseData:');
+    console.log(responseData);
 
-    // console.log('>> status:');
-    // console.log(status);
+    console.log('>> statusCode:');
+    console.log(statusCode);
 
     if (statusCode !== 200) {
       throw new Error('feedback.parseError');
@@ -87,6 +87,22 @@ const run = (initialState, i18nInstance) => {
       return response.data.contents; // xml → typeof: string
     }
   };
+
+  // const getXML = (response, url) => {
+  //   try {
+  //     console.log(response);
+  //     const wasUrlAdded = initialState.content.lists.urls.includes(url);
+  //     if (!wasUrlAdded) {
+  //       initialState.content.lists.urls.push(url);
+  //     }
+  //     state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
+
+  //     return response.data.contents; // xml → typeof: string
+  //   }
+  //   catch (error) {
+  //     throw new Error('feedback.parseError');
+  //   }
+  // };
 
   const parseXML = (xml) => {
     const parser = new DOMParser();
