@@ -65,9 +65,17 @@ const run = (initialState, i18nInstance) => {
 
   const getXML = (response, url) => {
     const responseData = response.data;
-    const status = responseData.status.http_code;
+    const statusCode = responseData.status.http_code;
+    // console.log('>> response:');
+    // console.log(response);
 
-    if (status !== 200) {
+    // console.log('>> responseData:');
+    // console.log(responseData);
+
+    // console.log('>> status:');
+    // console.log(status);
+
+    if (statusCode !== 200) {
       throw new Error('feedback.parseError');
     } else {
       const wasUrlAdded = initialState.content.lists.urls.includes(url);
