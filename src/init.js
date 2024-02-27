@@ -68,13 +68,16 @@ const run = (initialState, i18nInstance) => {
     console.log(response);
 
     const responseData = response.data;
-    const statusCode = responseData.status.http_code;
-
     console.log('>> responseData:');
     console.log(responseData);
 
+    const statusCode = responseData.status.http_code;
     console.log('>> statusCode:');
     console.log(statusCode);
+
+    // const statusCode = response.status;
+    // console.log(response);
+    // console.log(statusCode);
 
     if (statusCode !== 200) {
       throw new Error('feedback.parseError');
