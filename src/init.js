@@ -54,43 +54,40 @@ const run = (initialState, i18nInstance) => {
     },
   });
 
+  // const regMatch = /(https:\/\/)(.*)(?=\/)\/(feed|.*\.rss|.*\.xml)/gm;
+
   const schema = yup.string()
     .trim()
     .url()
+    // .matches(regMatch, { message: 'feedback.invalidUrl', excludeEmptyString: true }) // excludeEmptyString option make empty strings invalid
     .test('not-one-of', 'feedback.alreadyExists', function isNotOneOf(value) {
       const { urls } = this.options;
       return !urls.includes(value);
     })
     .required();
 
-  const getXML = (response, url) => {
-    // console.log('>> response:');
-    // console.log(response);
+    const getXML = (response, url) => {
+      const content = response.data.contents;
+      return { content, url }; // xml → typeof: string
+    };
 
-    // const responseData = JSON.stringify(response.data, null, '  ');
-    // console.log('>> responseData:');
-    // console.log(responseData);
+  // const getXML = (response, url) => {
+  //   console.log('>> getXML() → response:')
+  //   console.log(response);
+  //   const statusCode = response.status || response.data.status.http_code;
 
-    // const statusCode = responseData.status.http_code;
-    // console.log('>> statusCode:');
-    // console.log(statusCode);
+  //   if (statusCode !== 200) {
+  //     throw new Error('feedback.parseError');
+  //   } else {
+  //     const wasUrlAdded = initialState.content.lists.urls.includes(url);
+  //     if (!wasUrlAdded) {
+  //       initialState.content.lists.urls.push(url);
+  //     }
+  //     state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
 
-    const statusCode = response.status;
-    // console.log(response);
-    // console.log(statusCode);
-
-    if (statusCode !== 200) {
-      throw new Error('feedback.parseError');
-    } else {
-      const wasUrlAdded = initialState.content.lists.urls.includes(url);
-      if (!wasUrlAdded) {
-        initialState.content.lists.urls.push(url);
-      }
-      state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
-
-      return response.data.contents; // xml → typeof: string
-    }
-  };
+  //     return response.data.contents; // xml → typeof: string
+  //   }
+  // };
 
   // const getXML = (response, url) => {
   //   try {
@@ -108,30 +105,53 @@ const run = (initialState, i18nInstance) => {
   //   }
   // };
 
-  const parseXML = (xml) => {
+  const parseXML = (xml, url) => {
     const parser = new DOMParser();
 
     const parsed = parser.parseFromString(xml, 'text/xml');
-    const feedTitle = parsed.documentElement.getElementsByTagName('title')[0].textContent;
-    const feedDescription = parsed.documentElement.getElementsByTagName('description')[0].textContent;
+    // console.log('>> parseXML() → parsed:');
+    // console.log(parsed);
+    const errorNode = parsed.querySelector("parsererror");
 
-    const feed = {
-      title: feedTitle,
-      description: feedDescription,
-    };
+    if (errorNode) {
+      throw new Error('feedback.parseError');
 
-    const items = parsed.documentElement.getElementsByTagName('item');
-
-    const postsInit = [...items].map((item) => {
-      const title = item.querySelector('title').textContent;
-      const link = item.querySelector('link').textContent;
-      const description = item.querySelector('description').textContent;
-
-      return { title, link, description };
-    });
-    const posts = postsInit.reverse();
-
-    return { feed, posts };
+    } else {
+      const wasUrlAdded = initialState.content.lists.urls.includes(url);
+      if (!wasUrlAdded) {
+        initialState.content.lists.urls.push(url);
+      }
+      state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
+      const feedTitle = parsed.documentElement.getElementsByTagName('title')[0].textContent;
+      // console.log('>> feedTitle:');
+      // console.log(feedTitle);
+  
+      const feedDescription = parsed.documentElement.getElementsByTagName('description')[0].textContent;
+      // console.log('>> feedDescription:');
+      // console.log(feedDescription);
+  
+  
+      const feed = {
+        title: feedTitle,
+        description: feedDescription,
+      };
+  
+      const items = parsed.documentElement.getElementsByTagName('item');
+  
+      const postsInit = [...items].map((item) => {
+        const title = item.querySelector('title').textContent;
+        const link = item.querySelector('link').textContent;
+        const description = item.querySelector('description').textContent;
+  
+        return { title, link, description };
+      });
+      const posts = postsInit.reverse();
+  
+      console.log('>> parseXML() → { feed, posts }:');
+      console.log({ feed, posts });
+  
+      return { feed, posts };
+    }
   };
 
   const addIDs = (coll) => {
@@ -192,7 +212,7 @@ const run = (initialState, i18nInstance) => {
 
     axios.get(`${proxyDisabledCache}${encodeURIComponent(`${url}`)}`)
       .then((response) => getXML(response, url))
-      .then((xml) => parseXML(xml))
+      .then(({ content, url }) => parseXML(content, url))
       .then((coll) => addIDs(coll))
       .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
       .then(() => resolve())
