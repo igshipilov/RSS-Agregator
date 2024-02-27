@@ -66,7 +66,7 @@ const run = (initialState, i18nInstance) => {
   const getXML = (response, url) => {
     console.log('>> response:');
     console.log(response);
-    
+
     const responseData = response.data;
     const statusCode = responseData.status.http_code;
 
