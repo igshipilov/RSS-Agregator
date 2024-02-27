@@ -63,53 +63,10 @@ const run = (initialState, i18nInstance) => {
     })
     .required();
 
-  const getXML = (response) => {
-    const content = response.data.contents;
-    return content;
-    // const currentUrl = url;
-    // return { content, currentUrl }; // xml → typeof: string
-  };
-
-  // const getXML = (response, url) => {
-  //   console.log('>> getXML() → response:')
-  //   console.log(response);
-  //   const statusCode = response.status || response.data.status.http_code;
-
-  //   if (statusCode !== 200) {
-  //     throw new Error('feedback.parseError');
-  //   } else {
-  //     const wasUrlAdded = initialState.content.lists.urls.includes(url);
-  //     if (!wasUrlAdded) {
-  //       initialState.content.lists.urls.push(url);
-  //     }
-  //     state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
-
-  //     return response.data.contents; // xml → typeof: string
-  //   }
-  // };
-
-  // const getXML = (response, url) => {
-  //   try {
-  //     console.log(response);
-  //     const wasUrlAdded = initialState.content.lists.urls.includes(url);
-  //     if (!wasUrlAdded) {
-  //       initialState.content.lists.urls.push(url);
-  //     }
-  //     state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
-
-  //     return response.data.contents; // xml → typeof: string
-  //   }
-  //   catch (error) {
-  //     throw new Error('feedback.parseError');
-  //   }
-  // };
-
-  const parseXML = (xml, url) => {
+  const parseXML = (response, url) => {
     const parser = new DOMParser();
-
-    const parsed = parser.parseFromString(xml, 'text/xml');
-    // console.log('>> parseXML() → parsed:');
-    // console.log(parsed);
+    const content = response.data.contents;
+    const parsed = parser.parseFromString(content, 'text/xml');
     const errorNode = parsed.querySelector('parsererror');
 
     if (errorNode) {
@@ -121,12 +78,8 @@ const run = (initialState, i18nInstance) => {
       }
       state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
       const feedTitle = parsed.documentElement.getElementsByTagName('title')[0].textContent;
-      // console.log('>> feedTitle:');
-      // console.log(feedTitle);
 
       const feedDescription = parsed.documentElement.getElementsByTagName('description')[0].textContent;
-      // console.log('>> feedDescription:');
-      // console.log(feedDescription);
 
       const feed = {
         title: feedTitle,
@@ -143,9 +96,6 @@ const run = (initialState, i18nInstance) => {
         return { title, link, description };
       });
       const posts = postsInit.reverse();
-
-      // console.log('>> parseXML() → { feed, posts }:');
-      // console.log({ feed, posts });
 
       return { feed, posts };
     }
@@ -208,7 +158,7 @@ const run = (initialState, i18nInstance) => {
     const proxyDisabledCache = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
 
     axios.get(`${proxyDisabledCache}${encodeURIComponent(`${url}`)}`)
-      .then((response) => getXML(response, url))
+      // .then((response) => getXML(response, url))
       .then((content) => parseXML(content, url))
       .then((coll) => addIDs(coll))
       .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
