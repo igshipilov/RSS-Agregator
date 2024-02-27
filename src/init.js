@@ -64,10 +64,11 @@ const run = (initialState, i18nInstance) => {
     .required();
 
   const getXML = (response, url) => {
-    const responseData = response.data;
-    const statusCode = responseData.status.http_code;
     console.log('>> response:');
     console.log(response);
+    
+    const responseData = response.data;
+    const statusCode = responseData.status.http_code;
 
     console.log('>> responseData:');
     console.log(responseData);
