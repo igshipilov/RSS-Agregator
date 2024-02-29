@@ -5,13 +5,14 @@ array-callback-return,
 
 */
 
-const renderInitialInterface = (elements, i18nInstance) => {
-  elements.mainInterface.title.textContent = i18nInstance.t('mainInterface.title');
-  elements.mainInterface.subtitle.textContent = i18nInstance.t('mainInterface.subtitle');
-  elements.mainInterface.title.textContent = i18nInstance.t('mainInterface.title');
-  elements.mainInterface.formPlaceholder.textContent = i18nInstance.t('mainInterface.formPlaceholder');
-  elements.buttons.add.textContent = i18nInstance.t('buttons.add');
-};
+// TODO use this code for changeLanguge feature
+// const renderInitialInterface = (elements, i18nInstance) => {
+//   elements.mainInterface.title.textContent = i18nInstance.t('mainInterface.title');
+//   elements.mainInterface.subtitle.textContent = i18nInstance.t('mainInterface.subtitle');
+//   elements.mainInterface.title.textContent = i18nInstance.t('mainInterface.title');
+//   elements.mainInterface.formPlaceholder.textContent = i18nInstance.t('mainInterface.formPlaceholder');
+//   elements.buttons.add.textContent = i18nInstance.t('buttons.add');
+// };
 
 const handleInit = (titleName) => {
   const container = document.createElement('div');

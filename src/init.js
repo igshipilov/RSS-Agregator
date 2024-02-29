@@ -44,7 +44,8 @@ const run = (initialState, i18nInstance) => {
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
-  state.firstRender = true;
+  // TODO use this code for changeLanguge feature
+  // state.firstRender = true;
 
   setLocale({
     string: {
@@ -143,6 +144,14 @@ const run = (initialState, i18nInstance) => {
     state.buttons.addDisabled = false;
   };
 
+  const proxifyUrl = (url) => {
+    const proxifiedUrl = new URL('https://allorigins.hexlet.app/get?');
+    proxifiedUrl.searchParams.set('disableCache', 'true');
+    proxifiedUrl.searchParams.set('url', url);
+
+    return proxifiedUrl;
+  };
+
   const handleUrl = (url, e) => new Promise((resolve, reject) => {
     const isSubmitted = () => {
       try { return !!e; } catch (err) { return false; }
@@ -153,9 +162,9 @@ const run = (initialState, i18nInstance) => {
       state.buttons.addDisabled = true;
     }
 
-    const proxyDisabledCache = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
+    const proxifiedUrl = proxifyUrl(url);
 
-    axios.get(`${proxyDisabledCache}${encodeURIComponent(`${url}`)}`)
+    axios.get(proxifiedUrl)
       .then((content) => parseXML(content, url))
       .then((coll) => addIDs(coll))
       .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
