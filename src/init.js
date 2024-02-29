@@ -70,9 +70,9 @@ const run = (initialState, i18nInstance) => {
     if (errorNode) {
       throw new Error('feedback.parseError');
     } else {
-      const wasUrlAdded = initialState.content.lists.urls.includes(url);
+      const wasUrlAdded = initialState.content.urls.includes(url);
       if (!wasUrlAdded) {
-        initialState.content.lists.urls.push(url);
+        initialState.content.urls.push(url);
       }
       state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
       const feedTitle = parsed.documentElement.getElementsByTagName('title')[0].textContent;
@@ -103,7 +103,7 @@ const run = (initialState, i18nInstance) => {
     const resultColl = coll;
 
     const setId = (currentTitle, type) => {
-      const wasFeedAdded = initialState.content.lists[type].find(
+      const wasFeedAdded = initialState.content[type].find(
         ({ title }) => title === currentTitle,
       );
       return wasFeedAdded ? wasFeedAdded.id : _.uniqueId();
@@ -123,17 +123,17 @@ const run = (initialState, i18nInstance) => {
   const addFeedsAndPostsToState = (collFeedsAndPosts, isSubmitted) => {
     const { posts, feed } = collFeedsAndPosts;
 
-    const currentPosts = initialState.content.lists.posts;
+    const currentPosts = initialState.content.posts;
     const newPosts = _.differenceWith(posts, currentPosts, _.isEqual);
     const hasNewPosts = !_.isEmpty(newPosts);
 
     if (isSubmitted) {
-      state.content.lists.feeds.push(feed);
+      state.content.feeds.push(feed);
     }
     if (hasNewPosts) {
-      initialState.content.lists.posts.push(...newPosts);
-      state.content.lists.newPosts.push(...newPosts);
-      initialState.content.lists.newPosts = [];
+      initialState.content.posts.push(...newPosts);
+      state.content.newPosts.push(...newPosts);
+      initialState.content.newPosts = [];
     }
   };
 
@@ -179,13 +179,13 @@ const run = (initialState, i18nInstance) => {
 
     const runTimer = () => {
       setTimeout(function runUrlUpdate() {
-        initialState.content.lists.urls.forEach((url) => handleUrl(url));
+        initialState.content.urls.forEach((url) => handleUrl(url));
         setTimeout(runUrlUpdate, 5000);
       }, 0);
     };
 
     // in schema.validate second arg { urls: ... } is used for: yup.test('not-one-of')
-    schema.validate(submittedUrl, { urls: initialState.content.lists.urls })
+    schema.validate(submittedUrl, { urls: initialState.content.urls })
       .then(() => handleUrl(submittedUrl, e))
       .then(() => {
         state.buttons.addDisabled = false;
@@ -229,12 +229,10 @@ export default () => {
     firstRender: null,
     initiated: false,
     content: {
-      lists: {
-        urls: [], // ['https://lorem-rss.hexlet.app/feed', ...]
-        feeds: [], // [{ title, description, id }]
-        posts: [], // [{ title, link, description, id, feedId }, {...}, ...]
-        newPosts: [],
-      },
+      urls: [], // ['https://lorem-rss.hexlet.app/feed', ...]
+      feeds: [], // [{ title, description, id }]
+      posts: [], // [{ title, link, description, id, feedId }, {...}, ...]
+      newPosts: [],
     },
     form: {
       feedback: null,

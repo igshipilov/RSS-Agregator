@@ -110,7 +110,7 @@ const handlePosts = (value, i18nInstance) => {
 
 const handlerClickedPost = (elements, initialState, value) => {
   const currentPost = document.querySelector(`[data-id="${value}"]`);
-  const { posts } = initialState.content.lists;
+  const { posts } = initialState.content;
   const currentPostData = posts.find(({ id }) => id === value);
   const { title, description, link } = currentPostData;
 
@@ -138,11 +138,11 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
       elements.input.toggleAttribute('readonly');
       break;
 
-    case 'content.lists.feeds':
+    case 'content.feeds':
       handleFeeds(value);
       break;
 
-    case 'content.lists.newPosts':
+    case 'content.newPosts':
       handlePosts(value, i18nInstance);
       break;
 
