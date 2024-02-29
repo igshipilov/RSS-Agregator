@@ -2,6 +2,7 @@
 
 no-param-reassign,
 array-callback-return,
+max-len,
 
 */
 
@@ -151,9 +152,10 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
       handlerClickedPost(elements, initialState, value);
       break;
 
-    case 'firstRender':
-      renderInitialInterface(elements, i18nInstance);
-      break;
+      // TODO use this code for changeLanguge feature
+      // case 'firstRender':
+      //   renderInitialInterface(elements, i18nInstance);
+      //   break;
 
     default:
       throw new Error(`Unknown path: ${path}`);

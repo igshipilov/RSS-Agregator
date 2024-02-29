@@ -12,6 +12,7 @@ import { setLocale } from 'yup';
 import onChange from 'on-change';
 import resources from './locales/index.js';
 import render from './render.js';
+import parseXML from './parseXML.js';
 
 const run = (initialState, i18nInstance) => {
   const elements = {
@@ -62,42 +63,12 @@ const run = (initialState, i18nInstance) => {
     })
     .required();
 
-  const parseXML = (response, url) => {
-    const parser = new DOMParser();
-    const content = response.data.contents;
-    const parsed = parser.parseFromString(content, 'text/xml');
-    const errorNode = parsed.querySelector('parsererror');
-
-    if (errorNode) {
-      throw new Error('feedback.parseError');
-    } else {
-      const wasUrlAdded = initialState.content.urls.includes(url);
-      if (!wasUrlAdded) {
-        initialState.content.urls.push(url);
-      }
-      state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
-      const feedTitle = parsed.documentElement.getElementsByTagName('title')[0].textContent;
-
-      const feedDescription = parsed.documentElement.getElementsByTagName('description')[0].textContent;
-
-      const feed = {
-        title: feedTitle,
-        description: feedDescription,
-      };
-
-      const items = parsed.documentElement.getElementsByTagName('item');
-
-      const postsInit = [...items].map((item) => {
-        const title = item.querySelector('title').textContent;
-        const link = item.querySelector('link').textContent;
-        const description = item.querySelector('description').textContent;
-
-        return { title, link, description };
-      });
-      const posts = postsInit.reverse();
-
-      return { feed, posts };
+  const saveUrl = (url) => {
+    const wasUrlAdded = initialState.content.urls.includes(url);
+    if (!wasUrlAdded) {
+      initialState.content.urls.push(url);
     }
+    state.initiated = true; // triggers initial render (titles "Feeds" and "Posts", also <ul>)
   };
 
   const addIDs = (coll) => {
@@ -162,10 +133,11 @@ const run = (initialState, i18nInstance) => {
       state.buttons.addDisabled = true;
     }
 
+    saveUrl(url);
     const proxifiedUrl = proxifyUrl(url);
 
     axios.get(proxifiedUrl)
-      .then((content) => parseXML(content, url))
+      .then((content) => parseXML(content))
       .then((coll) => addIDs(coll))
       .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
       .then(() => resolve())
