@@ -3,9 +3,13 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/6e6e91903a47b7cd632e/maintainability)](https://codeclimate.com/github/igshipilov/frontend-project-11/maintainability)
 
 
+Install and run locally:
+```
+make install
+make develop
+```
 
 https://github.com/igshipilov/frontend-project-11/assets/57264879/2a851abd-67d7-4161-a23a-36b923ed925f
-
 
 
 

@@ -13,7 +13,7 @@ import * as yup from 'yup';
 import { setLocale } from 'yup';
 import onChange from 'on-change';
 import resources from './locales/index.js';
-import render from '../bin/render.js';
+import render from './render.js';
 
 const run = (initialState, i18nInstance) => {
   const elements = {
