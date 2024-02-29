@@ -1,8 +1,6 @@
 /* eslint-disable
 
-no-param-reassign,
-no-console,
-consistent-return,
+no-param-reassign
 
 */
 

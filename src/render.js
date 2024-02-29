@@ -1,7 +1,6 @@
 /* eslint-disable
 
 no-param-reassign,
-no-console,
 array-callback-return,
 
 */
