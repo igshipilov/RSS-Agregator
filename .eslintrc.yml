@@ -3,15 +3,12 @@ root: true
 
 plugins:
   - jest
-  # - babel
 
 env:
   node: true
   jest: true
   browser: true
   es2021: true
-
-# parser: "@babel/eslint-parser"
 
 parserOptions:
   ecmaVersion: latest
@@ -25,3 +22,4 @@ rules:
   no-console: 0
   import/extensions: 0
   eqeqeq: 0
+  array-callback-return: 0
