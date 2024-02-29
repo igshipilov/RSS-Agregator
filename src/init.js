@@ -138,7 +138,7 @@ const run = (initialState, i18nInstance) => {
   };
 
   const handleError = (err) => {
-    initialState.isValid = false;
+    initialState.isFormValid = false;
     state.form.feedback = i18nInstance.t(err.message);
     state.buttons.addDisabled = false;
   };
@@ -156,7 +156,6 @@ const run = (initialState, i18nInstance) => {
     const proxyDisabledCache = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
 
     axios.get(`${proxyDisabledCache}${encodeURIComponent(`${url}`)}`)
-      // .then((response) => getXML(response, url))
       .then((content) => parseXML(content, url))
       .then((coll) => addIDs(coll))
       .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
@@ -192,7 +191,7 @@ const run = (initialState, i18nInstance) => {
         runTimer();
       })
       .then(() => {
-        initialState.isValid = true;
+        initialState.isFormValid = true;
         state.form.feedback = null;
         state.form.feedback = i18nInstance.t('feedback.success');
       })
@@ -225,7 +224,7 @@ export default () => {
 
   const initialState = {
     lng: defaultLanguage,
-    isValid: null,
+    isFormValid: null,
     firstRender: null,
     initiated: false,
     content: {

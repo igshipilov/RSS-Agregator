@@ -33,7 +33,7 @@ const handleInit = (titleName) => {
 };
 
 const handleFeedback = (elements, initialState, i18nInstance) => {
-  if (initialState.isValid) {
+  if (initialState.isFormValid) {
     elements.input.classList.remove('is-invalid');
     elements.form.reset();
     elements.input.focus();
