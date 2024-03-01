@@ -1,7 +1,6 @@
 /* eslint-disable
 
-no-param-reassign,
-no-return-assign
+no-param-reassign
 
 */
 
@@ -46,7 +45,7 @@ const run = (initialState, i18nInstance) => {
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
-  const addFeedsAndPostsToState = (content, url) => {
+  const addFeedsAndPosts = (content, url) => {
     const contentIterable = Array.from(content);
     const feedTitle = contentIterable.find((el) => el.tagName === 'title').textContent;
     const feedDescription = contentIterable.find((el) => el.tagName === 'description').textContent;
@@ -73,12 +72,12 @@ const run = (initialState, i18nInstance) => {
 
     const posts = postsInit.reverse();
 
-    // initialState.content.feeds.push(feed);
-    // initialState.content.posts.push(...posts);
+    initialState.content.feeds.push(feed);
+    initialState.content.posts.push(...posts);
 
     state.loadingProcess.status = 'success';
 
-    return { feed, posts };
+    // return { feed, posts };
     // console.log(initialState.content);
   };
 
@@ -88,23 +87,11 @@ const run = (initialState, i18nInstance) => {
   };
 
   const addContent = (url) => {
-    initialState.loadingProcess.status = 'starting';
     axios.get(url)
       .then((response) => parseXML(response))
       .then((content) => addFeedsAndPosts(content, url))
       .catch((error) => handleLoadingError(error));
   };
-
-  // const addContent = (url) => new Promise((resolve, reject) => {
-  //   axios.get(url)
-  //     .then((response) => parseXML(response))
-  //     .then((content) => addFeedsAndPostsToState(content, url))
-  //     then(() => resolve())
-  //     .catch((error) => {
-  //       handleLoadingError(error);
-  //       reject();
-  //     });
-  // });
 
   // v1
   // const runTimer = () => {
@@ -116,7 +103,7 @@ const run = (initialState, i18nInstance) => {
   //     initialState.content.posts = [];
 
   //     // FIXME Надо ли обернуть content в Promise?
-  //     // QUESTION: функция addFeedsAndPostsToState уже наполняет state.content,
+  //     // QUESTION: функция addFeedsAndPosts уже наполняет state.content,
   //     // поэтому эта перезапись лишняя:
   //     // const content = currentFeeds.forEach(({ url }) => addContent(url));
   //     // initialState.content = content;
@@ -163,11 +150,7 @@ const run = (initialState, i18nInstance) => {
 
   const runTimer = () => {
     setTimeout(function runUrlUpdate() {
-      const currentFeeds = initialState.content.feeds;
-      initialState.content.feeds = [];
-      initialState.content.posts = [];
-
-      currentFeeds.forEach(({ url }) => addContent(url));
+      initialState.content.feeds.forEach(({ url }) => addContent(url));
       setTimeout(runUrlUpdate, 1000);
     }, 0);
   };
@@ -205,8 +188,6 @@ const run = (initialState, i18nInstance) => {
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
-
-    state.form.status = 'sending'; // дизейблим форму
 
     const formData = new FormData(e.target);
     const submittedUrl = formData.get('url');
@@ -358,7 +339,7 @@ export default () => {
 //     return (resultColl);
 //   };
 
-//   const addFeedsAndPostsToStateToState = (collFeedsAndPosts, isSubmitted) => {
+//   const addFeedsAndPostsToState = (collFeedsAndPosts, isSubmitted) => {
 //     const { posts, feed } = collFeedsAndPosts;
 
 //     const currentPosts = initialState.content.posts;
@@ -405,7 +386,7 @@ export default () => {
 //     axios.get(proxifiedUrl)
 //       .then((content) => parseXML(content))
 //       .then((coll) => addIDs(coll))
-//       .then((collWithIDs) => addFeedsAndPostsToStateToState(collWithIDs, isSubmitted()))
+//       .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
 //       .then(() => resolve())
 //       .catch((err) => {
 //         if (err.code === 'ERR_NETWORK') {
