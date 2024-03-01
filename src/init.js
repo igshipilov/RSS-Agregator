@@ -48,31 +48,35 @@ const run = (initialState, i18nInstance) => {
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
-  // TODO отвязываемся от isSubmitted, привязвыаемся к <чему-то другому>
-  const addFreshFeedsAndPosts = (xml, url) => {
-    // ------------ OLD -------------
-    // const { posts, feed } = collFeedsAndPosts;
-    // const currentPosts = initialState.content.posts;
-    // const newPosts = _.differenceWith(posts, currentPosts, _.isEqual);
-    // const hasNewPosts = !_.isEmpty(newPosts);
-    // if (isSubmitted) {
-    //   state.content.feeds.push(feed);
-    // }
-    // if (hasNewPosts) {
-    //   initialState.content.posts.push(...newPosts);
-    //   state.content.newPosts.push(...newPosts);
-    //   initialState.content.newPosts = [];
-    // }
+  const addFeedsAndPosts = (content, url) => {
+    const contentIterable = Array.from(content);
+    const feedTitle = contentIterable.find((el) => el.tagName === 'title').textContent;
+    const feedDescription = contentIterable.find((el) => el.tagName === 'description').textContent;
+    const feedId = _.uniqueId();
 
-    // ------------ АКТУАЛЬНОЕ -------------
-    // из спарсенного xml (скорее всего это теперь уже объект):
-      // получаю title и description из фида
-      // получаю title, description и link из поста (из item)
-      // добавляю фиды в initialState.content.feeds
-        // к фидам добавляю текущий url
-      // добавляю посты в initialState.content.posts
-    
+    const feed = {
+      title: feedTitle,
+      description: feedDescription,
+      id: feedId,
+      url,
+    };
+
+    const items = contentIterable.filter((el) => el.tagName === 'item');
+
+    const postsInit = [...items].map((item) => {
+      const title = item.querySelector('title').textContent;
+      const link = item.querySelector('link').textContent;
+      const description = item.querySelector('description').textContent;
+      const id = _.uniqueId();
+      return { title, link, description, id, feedId };
+    });
+
+    const posts = postsInit.reverse();
+
+    initialState.content.feeds.push(feed);
+    initialState.content.posts.push(posts);
   };
+
 
   const handleLoadingError = (err) => {
     initialState.loadingProcess.error = err.message;
@@ -81,8 +85,8 @@ const run = (initialState, i18nInstance) => {
 
   const addContent = (url) => {
     axios.get(url)
-      .then(content => parseXML(content))
-      .then(xml => addFreshFeedsAndPosts(xml, url))
+      .then(response => parseXML(response))
+      .then(content => addFeedsAndPosts(content, url))
       .catch(error => handleLoadingError(error))
   };
 
@@ -95,8 +99,8 @@ const run = (initialState, i18nInstance) => {
       initialState.content.posts = [];
       
       // FIXME Надо ли обернуть content в Promise?
-      // QUESTION: функция addFreshFeedsAndPosts уже наполняет state.content,
-      // поэтому эта перезапись лишняя
+      // QUESTION: функция addFeedsAndPosts уже наполняет state.content,
+      // поэтому эта перезапись лишняя:
       // const content = currentFeeds.forEach(({ url }) => addContent(url));
       // initialState.content = content;
 
@@ -116,7 +120,13 @@ const run = (initialState, i18nInstance) => {
     proxifiedUrl.searchParams.set('url', url);
     return proxifiedUrl;
   };
-
+  
+  setLocale({
+    string: {
+      url: 'feedback.invalidUrl',
+    },
+  });
+  
   const schema = yup.string()
     .trim()
     .url()

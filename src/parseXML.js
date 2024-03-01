@@ -7,7 +7,13 @@ export default (response) => {
   if (errorNode) {
     throw new Error('feedback.parseError');
   } else {
-    return;
+    const children = parsed.querySelector('channel').children;
+    // console.log(
+    //   parsed
+    //     .querySelector('channel')
+    //     .children
+    //   );
+    return children;
     // const feedTitle = parsed.documentElement.getElementsByTagName('title')[0].textContent;
     // const feedDescription = parsed.documentElement.getElementsByTagName('description')[0].textContent;
 
