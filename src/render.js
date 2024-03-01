@@ -118,19 +118,27 @@ const handleProcessStatus = (elements, initialState, i18nInstance, value) => {
 // const handleError = () => {};
 
 // TODO
-// Рендерит сообщения об успехе (зел.) и об ошибках (красн.)
-// const handleFormStatus = (elements, initialState, i18nInstance, value) => {
-//   switch (value) {
-//     case 'sending':
-//       break;
+// Рендерит сообщения об успехе (зел.) и об ошибках (красн.),
+// Дизейблит форму
+const handleFormStatus = (elements, initialState, i18nInstance, value) => {
+  switch (value) {
+    case 'sending':
+      elements.buttons.add.toggleAttribute('disabled');
+      elements.input.toggleAttribute('readonly');
+      break;
 
-//     case 'sent':
-//       break;
+    case 'sent':
+      elements.buttons.add.toggleAttribute('disabled');
+      elements.input.toggleAttribute('readonly');
+      break;
 
-//     case 'validationError':
-//       break;
-//   }
-// };
+    case 'validationError':
+      break;
+
+    default:
+      break;
+  }
+};
 
 const handleModal = (elements, initialState, value) => {
   const currentPost = document.querySelector(`[data-id="${value}"]`);
@@ -154,7 +162,7 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
       break;
 
     case 'form.status':
-      // handleFormStatus(elements, initialState, i18nInstance, value);
+      handleFormStatus(elements, initialState, i18nInstance, value);
       break;
 
     case 'ui.activePostId':
