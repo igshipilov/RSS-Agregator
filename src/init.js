@@ -70,23 +70,27 @@ const defaultLanguage = 'ru';
 
 const initialState = {
   lng: defaultLanguage,
-  isFormValid: null,
-  firstRender: null,
-  initiated: false,
+  loadingProcess: {
+		status: '', // 'ready', 'starting', 'success', 'uploadError'
+		error: '', // 'networkError', 'parseError'
+	},
+	form: {
+		status: '', // 'waiting', 'sending', 'sent', 'validationError'
+		error: '', // 'alreadyExists', 'invalidUrl'
+	},
+  // isFormValid: null, // нужна ли? Ведь есть form.status
   content: {
-    urls: [], // ['https://lorem-rss.hexlet.app/feed', ...]
-    feeds: [], // [{ title, description, id }]
-    posts: [], // [{ title, link, description, id, feedId }, {...}, ...]
-    newPosts: [],
+    feeds: [], // [{ title, description, id, url }, ...]
+    posts: [], // [{ title, link, description, id, feedId }, ...]
   },
-  form: {
-    feedback: null,
-  },
+  // form: {
+  //   feedback: null, // replaced by state.form.error
+  // },
   buttons: {
     addDisabled: false,
   },
   ui: {
-    activePostId: null,
+    activePostId: null, // used by modal
   },
 };
 
@@ -319,7 +323,7 @@ i18nInstance.init({
 //       addDisabled: false,
 //     },
 //     ui: {
-//       activePostId: null,
+//       activePostId: null, // used by modal
 //     },
 //   };
 
