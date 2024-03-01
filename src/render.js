@@ -6,7 +6,12 @@ max-len,
 */
 
 
-
+export default (elements, initialState, i18nInstance) => (path, value) => {
+  switch (path) {
+    // default:
+    //   throw new Error(`Unknown path: ${path}`);
+  }
+};
 
 
 

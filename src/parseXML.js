@@ -1,4 +1,4 @@
-const parse = (response) => {
+export default (response) => {
   const parser = new DOMParser();
   const content = response.data.contents;
   const parsed = parser.parseFromString(content, 'text/xml');
@@ -31,4 +31,4 @@ const parse = (response) => {
   }
 };
 
-console.log(parse('https://lorem-rss.hexlet.app/feed?unit=second'));
+// console.log(parse('https://lorem-rss.hexlet.app/feed?unit=second'));

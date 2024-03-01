@@ -76,7 +76,7 @@ const run = (initialState, i18nInstance) => {
 
   const handleLoadingError = (err) => {
     initialState.loadingProcess.error = err.message;
-    state.loadingProcess.status = 'parseError';
+    state.loadingProcess.status = 'parseError'; // рендер: читаем код ошибки из loadingProcess.error, рендерим текст из i18next
   };
 
   const addContent = (url) => {
@@ -117,34 +117,39 @@ const run = (initialState, i18nInstance) => {
     return proxifiedUrl;
   };
 
+  const schema = yup.string()
+    .trim()
+    .url()
+    .test('not-one-of', 'feedback.alreadyExists', function isNotOneOf(currentUrl) {
+      const { urls } = this.options;
+      return !urls.includes(currentUrl);
+    })
+    .required();
+
+  const handleFormError = (err) => {
+    initialState.form.error = err.message;
+    state.form.status = 'validationError'; // рендер: читаем код ошибки из form.error, рендерим текст из i18next
+  };
+
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
 
     const formData = new FormData(e.target);
     const submittedUrl = formData.get('url');
     const proxifiedUrl = proxifyUrl(submittedUrl);
+    const urls = initialState.content.feeds.map(({ url }) => url);
 
     initialState.loadingProcess.status = 'starting';
     state.form.status = 'sending'; // дизейблим форму
 
-    // in schema.validate second arg { urls: ... } is used for: yup.test('not-one-of')
-    schema.validate(submittedUrl, { urls: initialState.content.urls })
-      .then(() => handleUrl(submittedUrl))
-      // .then(() => {
-      //   state.buttons.addDisabled = false;
-      // })
-      // .then(() => {
-      //   initialState.isFormValid = true;
-      //   state.form.feedback = null;
-      //   state.form.feedback = i18nInstance.t('feedback.success');
-      // })
-      // .catch((err) => {
-      //   handleError(err);
-      // });
+
+    // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
+    schema.validate(submittedUrl, { urls })
+      .then(() => state.form.status = 'sent') // рендер зелёного 'RSS успешно загружен', разблок. форму
+      .catch((err) => handleFormError(err));
       
     addContent(proxifiedUrl);
     state.loadingProcess.status = 'success'; // рендер содержимого state.content
-    state.form.status = 'sent'; // рендер зелёного 'RSS успешно загружен', разблок. форму
   });
 
 
