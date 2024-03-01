@@ -14,6 +14,9 @@ import resources from './locales/index.js';
 import render from './render.js';
 import parseXML from './parseXML.js';
 
+
+
+
 const run = (initialState, i18nInstance) => {
   const elements = {
     mainInterface: {
@@ -65,9 +68,7 @@ const run = (initialState, i18nInstance) => {
       const link = item.querySelector('link').textContent;
       const description = item.querySelector('description').textContent;
       const id = _.uniqueId();
-      return {
-        title, link, description, id, feedId,
-      };
+      return { title, link, description, id, feedId };
     });
 
     const posts = postsInit.reverse();
@@ -75,11 +76,12 @@ const run = (initialState, i18nInstance) => {
     initialState.content.feeds.push(feed);
     initialState.content.posts.push(...posts);
 
-    state.loadingProcess.status = 'success';
+    state.loadingProcess.status = 'success'
 
     // return { feed, posts };
     // console.log(initialState.content);
   };
+
 
   const handleLoadingError = (err) => {
     initialState.loadingProcess.error = err.message;
@@ -88,9 +90,9 @@ const run = (initialState, i18nInstance) => {
 
   const addContent = (url) => {
     axios.get(url)
-      .then((response) => parseXML(response))
-      .then((content) => addFeedsAndPosts(content, url))
-      .catch((error) => handleLoadingError(error));
+      .then(response => parseXML(response))
+      .then(content => addFeedsAndPosts(content, url))
+      .catch(error => handleLoadingError(error))
   };
 
   // v1
@@ -101,7 +103,7 @@ const run = (initialState, i18nInstance) => {
   //     const currentFeeds = initialState.content.feeds;
   //     initialState.content.feeds = [];
   //     initialState.content.posts = [];
-
+      
   //     // FIXME Надо ли обернуть content в Promise?
   //     // QUESTION: функция addFeedsAndPosts уже наполняет state.content,
   //     // поэтому эта перезапись лишняя:
@@ -114,10 +116,11 @@ const run = (initialState, i18nInstance) => {
   //       currentFeeds.forEach(({ url }) => addContent(url));
   //       state.loadingProcess.status = 'success'; // рендер содержимого state.content
   //     }
-
+      
   //     setTimeout(runUrlUpdate, 5000);
   //   }, 5000);
   // };
+
 
   // v3
   // FIXME
@@ -132,6 +135,7 @@ const run = (initialState, i18nInstance) => {
   //     const currentFeeds = initialState.content.feeds;
   //     const wasFeedsAdded = !!currentFeeds.length;
 
+
   //     if (wasFeedsAdded) {
   //       initialState.content.feeds = [];
   //       initialState.content.posts = [];
@@ -141,12 +145,13 @@ const run = (initialState, i18nInstance) => {
   //       console.log(content);
   //       content.then((result) => initialState.content = result);
   //     }
-
+      
   //     setTimeout(runUrlUpdate, 1000);
   //   }, 1000);
   // };
 
   // runTimer();
+
 
   const runTimer = () => {
     setTimeout(function runUrlUpdate() {
@@ -157,19 +162,20 @@ const run = (initialState, i18nInstance) => {
 
   runTimer();
 
+
   const proxifyUrl = (url) => {
     const proxifiedUrl = new URL('https://allorigins.hexlet.app/get?');
     proxifiedUrl.searchParams.set('disableCache', 'true');
     proxifiedUrl.searchParams.set('url', url);
     return proxifiedUrl;
   };
-
+  
   setLocale({
     string: {
       url: 'feedback.invalidUrl',
     },
   });
-
+  
   const schema = yup.string()
     .trim()
     .url()
@@ -198,18 +204,20 @@ const run = (initialState, i18nInstance) => {
     initialState.loadingProcess.status = 'starting';
     state.form.status = 'sending'; // дизейблим форму
 
+
     // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
     schema.validate(submittedUrl, { urls })
       // рендер зелёного 'RSS успешно загружен', разблок. форму
-      // .then(() => (state.form.status = 'sent'))
+      .then(() => state.form.status = 'sent')
       .catch((err) => handleFormError(err));
-
+      
     addContent(proxifiedUrl);
     // state.loadingProcess.status = 'success'; // рендер содержимого state.content
   });
 
-  const modal = elements.modal.window;
 
+  const modal = elements.modal.window;
+  
   modal.addEventListener('show.bs.modal', (e) => {
     const button = e.relatedTarget;
     const id = button.getAttribute('data-id');
@@ -259,7 +267,26 @@ export default () => {
   }).then(run(initialState, i18nInstance));
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ======== OLD =============
+
 
 // const run = (initialState, i18nInstance) => {
 //   const elements = {
@@ -480,3 +507,4 @@ export default () => {
 //     resources,
 //   }).then(run(initialState, i18nInstance));
 // };
+
