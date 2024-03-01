@@ -48,26 +48,9 @@ const run = (initialState, i18nInstance) => {
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
-  const proxifyUrl = (url) => {
-    const proxifiedUrl = new URL('https://allorigins.hexlet.app/get?');
-    proxifiedUrl.searchParams.set('disableCache', 'true');
-    proxifiedUrl.searchParams.set('url', url);
-
-    return proxifiedUrl;
-  };
-
-  const saveUrl = (url) => {
-    const wasUrlAdded = initialState.content.urls.includes(url);
-    if (!wasUrlAdded) {
-      initialState.content.urls.push(url);
-    }
-  };
-
-  // saveUrl(url);
-  // const proxifiedUrl = proxifyUrl(url);
-
-  // FIXME отвязываемся от isSubmitted, привязвыаемся к <чему-то другому>
-  const getFreshFeedsAndPosts = (collFeedsAndPosts, isSubmitted) => {
+  // TODO отвязываемся от isSubmitted, привязвыаемся к <чему-то другому>
+  const addFreshFeedsAndPosts = (xml, url) => {
+    // ------------ OLD -------------
     // const { posts, feed } = collFeedsAndPosts;
     // const currentPosts = initialState.content.posts;
     // const newPosts = _.differenceWith(posts, currentPosts, _.isEqual);
@@ -81,11 +64,14 @@ const run = (initialState, i18nInstance) => {
     //   initialState.content.newPosts = [];
     // }
 
+    // ------------ АКТУАЛЬНОЕ -------------
     // из спарсенного xml (скорее всего это теперь уже объект):
       // получаю title и description из фида
       // получаю title, description и link из поста (из item)
       // добавляю фиды в initialState.content.feeds
+        // к фидам добавляю текущий url
       // добавляю посты в initialState.content.posts
+    
   };
 
   const handleLoadingError = (err) => {
@@ -93,10 +79,10 @@ const run = (initialState, i18nInstance) => {
     state.loadingProcess.status = 'parseError';
   };
 
-  const updateContent = (url) => {
+  const addContent = (url) => {
     axios.get(url)
       .then(content => parseXML(content))
-      .then(xml => getFreshFeedsAndPosts(xml))
+      .then(xml => addFreshFeedsAndPosts(xml, url))
       .catch(error => handleLoadingError(error))
   };
 
@@ -108,8 +94,13 @@ const run = (initialState, i18nInstance) => {
       initialState.content.feeds = [];
       initialState.content.posts = [];
       
-      const content = currentFeeds.forEach(({ url }) => updateContent(url));
-      initialState.content = content;
+      // FIXME Надо ли обернуть content в Promise?
+      // QUESTION: функция addFreshFeedsAndPosts уже наполняет state.content,
+      // поэтому эта перезапись лишняя
+      // const content = currentFeeds.forEach(({ url }) => addContent(url));
+      // initialState.content = content;
+
+      currentFeeds.forEach(({ url }) => addContent(url));
       state.loadingProcess.status = 'success'; // рендер содержимого state.content
       
       setTimeout(runUrlUpdate, 5000);
@@ -117,6 +108,45 @@ const run = (initialState, i18nInstance) => {
   };
 
   runTimer();
+
+
+  const proxifyUrl = (url) => {
+    const proxifiedUrl = new URL('https://allorigins.hexlet.app/get?');
+    proxifiedUrl.searchParams.set('disableCache', 'true');
+    proxifiedUrl.searchParams.set('url', url);
+    return proxifiedUrl;
+  };
+
+  elements.form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const submittedUrl = formData.get('url');
+    const proxifiedUrl = proxifyUrl(submittedUrl);
+
+    initialState.loadingProcess.status = 'starting';
+    state.form.status = 'sending'; // дизейблим форму
+
+    // in schema.validate second arg { urls: ... } is used for: yup.test('not-one-of')
+    schema.validate(submittedUrl, { urls: initialState.content.urls })
+      .then(() => handleUrl(submittedUrl))
+      // .then(() => {
+      //   state.buttons.addDisabled = false;
+      // })
+      // .then(() => {
+      //   initialState.isFormValid = true;
+      //   state.form.feedback = null;
+      //   state.form.feedback = i18nInstance.t('feedback.success');
+      // })
+      // .catch((err) => {
+      //   handleError(err);
+      // });
+      
+    addContent(proxifiedUrl);
+    state.loadingProcess.status = 'success'; // рендер содержимого state.content
+    state.form.status = 'sent'; // рендер зелёного 'RSS успешно загружен', разблок. форму
+  });
+
 
   const modal = elements.modal.window;
   modal.addEventListener('show.bs.modal', (e) => {
@@ -150,20 +180,20 @@ export default () => {
       status: 'waiting', // 'waiting', 'sending', 'sent', 'validationError'
       error: null, // 'alreadyExists', 'invalidUrl'
     },
-    // isFormValid: null, // нужна ли? Ведь есть form.status
     content: {
       feeds: [], // [{ title, description, id, url }, ...]
       posts: [], // [{ title, link, description, id, feedId }, ...]
     },
+    ui: {
+      activePostId: null, // used by modal
+    },
+    // isFormValid: null, // нужна ли? Ведь есть form.status
     // form: {
     //   feedback: null, // replaced by state.form.error
     // },
     // buttons: {
     //   addDisabled: false, // replaced by state.form.status
     // },
-    ui: {
-      activePostId: null, // used by modal
-    },
   };
 
   const i18nInstance = i18next.createInstance();
