@@ -6,7 +6,7 @@ max-len,
 */
 
 // const mappingFeedback = {
-//   success: 
+//   success:
 // };
 
 const addTitles = (titleName) => {
@@ -103,9 +103,13 @@ const handleProcessStatus = (elements, initialState, i18nInstance, value) => {
 
       addFeeds(initialState.content);
       addPosts(initialState.content, i18nInstance);
+      break;
 
     // TODO
     case 'uploadError':
+      break;
+
+    default:
       break;
   }
 };
@@ -148,29 +152,20 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
     case 'loadingProcess.status':
       handleProcessStatus(elements, initialState, i18nInstance, value);
       break;
+
     case 'form.status':
       // handleFormStatus(elements, initialState, i18nInstance, value);
       break;
+
     case 'ui.activePostId':
       handleModal(elements, initialState, value);
       break;
-    // default:
+
+    default:
+      break;
     //   throw new Error(`Unknown path: ${path}`);
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // ======== OLD =============
 
