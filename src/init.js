@@ -76,7 +76,7 @@ const run = (initialState, i18nInstance) => {
     // initialState.content.feeds.push(feed);
     // initialState.content.posts.push(...posts);
 
-    // state.loadingProcess.status = 'success';
+    state.loadingProcess.status = 'success';
 
     return { feed, posts };
     // console.log(initialState.content);
@@ -91,7 +91,7 @@ const run = (initialState, i18nInstance) => {
     initialState.loadingProcess.status = 'starting';
     axios.get(url)
       .then((response) => parseXML(response))
-      .then((content) => addFeedsAndPostsToState(content, url))
+      .then((content) => addFeedsAndPosts(content, url))
       .catch((error) => handleLoadingError(error));
   };
 
@@ -212,15 +212,18 @@ const run = (initialState, i18nInstance) => {
     const submittedUrl = formData.get('url');
     const proxifiedUrl = proxifyUrl(submittedUrl);
     const urls = initialState.content.feeds.map(({ url }) => url);
-    // console.log(urls);
+    console.log(urls);
+
+    initialState.loadingProcess.status = 'starting';
+    state.form.status = 'sending'; // дизейблим форму
 
     // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
-    schema.validate(proxifiedUrl.href, { urls })
-      .then(() => addContent(proxifiedUrl.href))
-      .then(() => (state.form.status = 'sent'))
+    schema.validate(submittedUrl, { urls })
+      // рендер зелёного 'RSS успешно загружен', разблок. форму
+      // .then(() => (state.form.status = 'sent'))
       .catch((err) => handleFormError(err));
 
-    // state.form.status = 'sent'; // разлочиваем форму
+    addContent(proxifiedUrl);
     // state.loadingProcess.status = 'success'; // рендер содержимого state.content
   });
 
