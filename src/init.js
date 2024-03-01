@@ -74,7 +74,12 @@ const run = (initialState, i18nInstance) => {
     const posts = postsInit.reverse();
 
     initialState.content.feeds.push(feed);
-    initialState.content.posts.push(posts);
+    initialState.content.posts.push(...posts);
+
+    state.loadingProcess.status = 'success'
+
+    // return { feed, posts };
+    // console.log(initialState.content);
   };
 
 
@@ -90,24 +95,68 @@ const run = (initialState, i18nInstance) => {
       .catch(error => handleLoadingError(error))
   };
 
+  // v1
+  // const runTimer = () => {
+  //   setTimeout(function runUrlUpdate() {
+  //     initialState.loadingProcess.status = 'starting';
+
+  //     const currentFeeds = initialState.content.feeds;
+  //     initialState.content.feeds = [];
+  //     initialState.content.posts = [];
+      
+  //     // FIXME Надо ли обернуть content в Promise?
+  //     // QUESTION: функция addFeedsAndPosts уже наполняет state.content,
+  //     // поэтому эта перезапись лишняя:
+  //     // const content = currentFeeds.forEach(({ url }) => addContent(url));
+  //     // initialState.content = content;
+
+  //     const wasFeedsAdded = !!currentFeeds.length;
+
+  //     if (wasFeedsAdded) {
+  //       currentFeeds.forEach(({ url }) => addContent(url));
+  //       state.loadingProcess.status = 'success'; // рендер содержимого state.content
+  //     }
+      
+  //     setTimeout(runUrlUpdate, 5000);
+  //   }, 5000);
+  // };
+
+
+  // v3
+  // FIXME
+  // ожидаю: по тику таймера рендерятся все фиды из state
+  // получаю: по тику возникает ошибка при обращении к initialState.content.feeds
+  // гипотеза: дебаг через консоль браузера показал,
+  // что не отрабатывает content.then(), т.к. в него приходит undefined
+  // const runTimer = () => {
+  //   setTimeout(function runUrlUpdate() {
+  //     initialState.loadingProcess.status = 'starting';
+
+  //     const currentFeeds = initialState.content.feeds;
+  //     const wasFeedsAdded = !!currentFeeds.length;
+
+
+  //     if (wasFeedsAdded) {
+  //       initialState.content.feeds = [];
+  //       initialState.content.posts = [];
+  //       const content = new Promise(function(resolve, reject) {
+  //         resolve(currentFeeds.forEach(({ url }) => addContent(url)));
+  //       });
+  //       console.log(content);
+  //       content.then((result) => initialState.content = result);
+  //     }
+      
+  //     setTimeout(runUrlUpdate, 1000);
+  //   }, 1000);
+  // };
+
+  // runTimer();
+
+
   const runTimer = () => {
     setTimeout(function runUrlUpdate() {
-      initialState.loadingProcess.status = 'starting';
-
-      const currentFeeds = initialState.content.feeds;
-      initialState.content.feeds = [];
-      initialState.content.posts = [];
-      
-      // FIXME Надо ли обернуть content в Promise?
-      // QUESTION: функция addFeedsAndPosts уже наполняет state.content,
-      // поэтому эта перезапись лишняя:
-      // const content = currentFeeds.forEach(({ url }) => addContent(url));
-      // initialState.content = content;
-
-      currentFeeds.forEach(({ url }) => addContent(url));
-      state.loadingProcess.status = 'success'; // рендер содержимого state.content
-      
-      setTimeout(runUrlUpdate, 5000);
+      initialState.content.feeds.forEach(({ url }) => addContent(url));
+      setTimeout(runUrlUpdate, 1000);
     }, 0);
   };
 
@@ -138,7 +187,9 @@ const run = (initialState, i18nInstance) => {
 
   const handleFormError = (err) => {
     initialState.form.error = err.message;
-    state.form.status = 'validationError'; // рендер: читаем код ошибки из form.error, рендерим текст из i18next
+
+    // рендер: читаем код ошибки из form.error, рендерим текст из i18next
+    state.form.status = 'validationError';
   };
 
   elements.form.addEventListener('submit', (e) => {
@@ -148,6 +199,7 @@ const run = (initialState, i18nInstance) => {
     const submittedUrl = formData.get('url');
     const proxifiedUrl = proxifyUrl(submittedUrl);
     const urls = initialState.content.feeds.map(({ url }) => url);
+    console.log(urls);
 
     initialState.loadingProcess.status = 'starting';
     state.form.status = 'sending'; // дизейблим форму
@@ -155,15 +207,17 @@ const run = (initialState, i18nInstance) => {
 
     // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
     schema.validate(submittedUrl, { urls })
-      .then(() => state.form.status = 'sent') // рендер зелёного 'RSS успешно загружен', разблок. форму
+      // рендер зелёного 'RSS успешно загружен', разблок. форму
+      .then(() => state.form.status = 'sent')
       .catch((err) => handleFormError(err));
       
     addContent(proxifiedUrl);
-    state.loadingProcess.status = 'success'; // рендер содержимого state.content
+    // state.loadingProcess.status = 'success'; // рендер содержимого state.content
   });
 
 
   const modal = elements.modal.window;
+  
   modal.addEventListener('show.bs.modal', (e) => {
     const button = e.relatedTarget;
     const id = button.getAttribute('data-id');
@@ -202,13 +256,6 @@ export default () => {
     ui: {
       activePostId: null, // used by modal
     },
-    // isFormValid: null, // нужна ли? Ведь есть form.status
-    // form: {
-    //   feedback: null, // replaced by state.form.error
-    // },
-    // buttons: {
-    //   addDisabled: false, // replaced by state.form.status
-    // },
   };
 
   const i18nInstance = i18next.createInstance();
@@ -219,6 +266,14 @@ export default () => {
     resources,
   }).then(run(initialState, i18nInstance));
 };
+
+
+
+
+
+
+
+
 
 
 
