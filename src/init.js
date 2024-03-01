@@ -46,61 +46,133 @@ const run = (initialState, i18nInstance) => {
     },
   };
 
-const modal = elements.modal.window;
-modal.addEventListener('show.bs.modal', (e) => {
-  const button = e.relatedTarget;
-  const id = button.getAttribute('data-id');
+  const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
-  state.ui.activePostId = id;
-});
+  const proxifyUrl = (url) => {
+    const proxifiedUrl = new URL('https://allorigins.hexlet.app/get?');
+    proxifiedUrl.searchParams.set('disableCache', 'true');
+    proxifiedUrl.searchParams.set('url', url);
 
-const { posts } = elements.content;
-posts.addEventListener('click', (e) => {
-  const el = e.target;
+    return proxifiedUrl;
+  };
 
-  if (el.tagName === 'A') {
-    const { id } = el.dataset;
+  const saveUrl = (url) => {
+    const wasUrlAdded = initialState.content.urls.includes(url);
+    if (!wasUrlAdded) {
+      initialState.content.urls.push(url);
+    }
+  };
+
+  // saveUrl(url);
+  // const proxifiedUrl = proxifyUrl(url);
+
+  // FIXME отвязываемся от isSubmitted, привязвыаемся к <чему-то другому>
+  const getFreshFeedsAndPosts = (collFeedsAndPosts, isSubmitted) => {
+    // const { posts, feed } = collFeedsAndPosts;
+    // const currentPosts = initialState.content.posts;
+    // const newPosts = _.differenceWith(posts, currentPosts, _.isEqual);
+    // const hasNewPosts = !_.isEmpty(newPosts);
+    // if (isSubmitted) {
+    //   state.content.feeds.push(feed);
+    // }
+    // if (hasNewPosts) {
+    //   initialState.content.posts.push(...newPosts);
+    //   state.content.newPosts.push(...newPosts);
+    //   initialState.content.newPosts = [];
+    // }
+
+    // из спарсенного xml (скорее всего это теперь уже объект):
+      // получаю title и description из фида
+      // получаю title, description и link из поста (из item)
+      // добавляю фиды в initialState.content.feeds
+      // добавляю посты в initialState.content.posts
+  };
+
+  const handleLoadingError = (err) => {
+    initialState.loadingProcess.error = err.message;
+    state.loadingProcess.status = 'parseError';
+  };
+
+  const updateContent = (url) => {
+    axios.get(url)
+      .then(content => parseXML(content))
+      .then(xml => getFreshFeedsAndPosts(xml))
+      .catch(error => handleLoadingError(error))
+  };
+
+  const runTimer = () => {
+    setTimeout(function runUrlUpdate() {
+      initialState.loadingProcess.status = 'starting';
+
+      const currentFeeds = initialState.content.feeds;
+      initialState.content.feeds = [];
+      initialState.content.posts = [];
+      
+      const content = currentFeeds.forEach(({ url }) => updateContent(url));
+      initialState.content = content;
+      state.loadingProcess.status = 'success'; // рендер содержимого state.content
+      
+      setTimeout(runUrlUpdate, 5000);
+    }, 0);
+  };
+
+  runTimer();
+
+  const modal = elements.modal.window;
+  modal.addEventListener('show.bs.modal', (e) => {
+    const button = e.relatedTarget;
+    const id = button.getAttribute('data-id');
+
     state.ui.activePostId = id;
-  }
-});
+  });
+
+  const { posts } = elements.content;
+  posts.addEventListener('click', (e) => {
+    const el = e.target;
+
+    if (el.tagName === 'A') {
+      const { id } = el.dataset;
+      state.ui.activePostId = id;
+    }
+  });
 };
 
 export default () => {
-const defaultLanguage = 'ru';
+  const defaultLanguage = 'ru';
 
-const initialState = {
-  lng: defaultLanguage,
-  loadingProcess: {
-		status: '', // 'ready', 'starting', 'success', 'uploadError'
-		error: '', // 'networkError', 'parseError'
-	},
-	form: {
-		status: '', // 'waiting', 'sending', 'sent', 'validationError'
-		error: '', // 'alreadyExists', 'invalidUrl'
-	},
-  // isFormValid: null, // нужна ли? Ведь есть form.status
-  content: {
-    feeds: [], // [{ title, description, id, url }, ...]
-    posts: [], // [{ title, link, description, id, feedId }, ...]
-  },
-  // form: {
-  //   feedback: null, // replaced by state.form.error
-  // },
-  buttons: {
-    addDisabled: false,
-  },
-  ui: {
-    activePostId: null, // used by modal
-  },
-};
+  const initialState = {
+    lng: defaultLanguage,
+    loadingProcess: {
+      status: 'ready', // 'ready', 'starting', 'success', 'uploadError'
+      error: null, // 'networkError', 'parseError'
+    },
+    form: {
+      status: 'waiting', // 'waiting', 'sending', 'sent', 'validationError'
+      error: null, // 'alreadyExists', 'invalidUrl'
+    },
+    // isFormValid: null, // нужна ли? Ведь есть form.status
+    content: {
+      feeds: [], // [{ title, description, id, url }, ...]
+      posts: [], // [{ title, link, description, id, feedId }, ...]
+    },
+    // form: {
+    //   feedback: null, // replaced by state.form.error
+    // },
+    // buttons: {
+    //   addDisabled: false, // replaced by state.form.status
+    // },
+    ui: {
+      activePostId: null, // used by modal
+    },
+  };
 
-const i18nInstance = i18next.createInstance();
+  const i18nInstance = i18next.createInstance();
 
-i18nInstance.init({
-  lng: initialState.lng,
-  debug: false,
-  resources,
-}).then(run(initialState, i18nInstance));
+  i18nInstance.init({
+    lng: initialState.lng,
+    debug: false,
+    resources,
+  }).then(run(initialState, i18nInstance));
 };
 
 
