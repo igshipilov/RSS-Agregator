@@ -88,84 +88,6 @@ const run = (initialState, i18nInstance) => {
     return { feed, posts };
   };
 
-  const addContent = (url) => {
-    axios.get(url)
-      .then((response) => parseXML(response))
-      .then((content) => getFeedsAndPosts(content, url))
-      .catch((error) => handleLoadingError(error));
-  };
-
-  // v1
-  // const runTimer = () => {
-  //   setTimeout(function runUrlUpdate() {
-  //     initialState.loadingProcess.status = 'starting';
-
-  //     const currentFeeds = initialState.content.feeds;
-  //     initialState.content.feeds = [];
-  //     initialState.content.posts = [];
-
-  //     // FIXME Надо ли обернуть content в Promise?
-  //     // QUESTION: функция getFeedsAndPosts уже наполняет state.content,
-  //     // поэтому эта перезапись лишняя:
-  //     // const content = currentFeeds.forEach(({ url }) => addContent(url));
-  //     // initialState.content = content;
-
-  //     const wasFeedsAdded = !!currentFeeds.length;
-
-  //     if (wasFeedsAdded) {
-  //       currentFeeds.forEach(({ url }) => addContent(url));
-  //       state.loadingProcess.status = 'success'; // рендер содержимого state.content
-  //     }
-
-  //     setTimeout(runUrlUpdate, 5000);
-  //   }, 5000);
-  // };
-
-  // v3
-  // FIXME
-  // ожидаю: по тику таймера рендерятся все фиды из state
-  // получаю: по тику возникает ошибка при обращении к initialState.content.feeds
-  // гипотеза: дебаг через консоль браузера показал,
-  // что не отрабатывает content.then(), т.к. в него приходит undefined
-  // const runTimer = () => {
-  //   setTimeout(function runUrlUpdate() {
-  //     initialState.loadingProcess.status = 'starting';
-
-  //     const currentFeeds = initialState.content.feeds;
-  //     const wasFeedsAdded = !!currentFeeds.length;
-
-  //     if (wasFeedsAdded) {
-  //       initialState.content.feeds = [];
-  //       initialState.content.posts = [];
-  //       const content = new Promise(function(resolve, reject) {
-  //         resolve(currentFeeds.forEach(({ url }) => addContent(url)));
-  //       });
-  //       console.log(content);
-  //       content.then((result) => initialState.content = result);
-  //     }
-
-  //     setTimeout(runUrlUpdate, 1000);
-  //   }, 1000);
-  // };
-
-  // runTimer();
-
-  // const refresh = () => {
-  //   setTimeout(function runUrlUpdate() {
-  //     if (!!initialState.content.feeds.length) {
-  //       const urls = initialState.content.feeds.map(({ url }) => axios.get(url)
-  //         .then(parseXML)
-  //         .then((content) => getFeedsAndPosts(content, url))
-  //         // .then(() => console.log(initialState.content))
-  //       );
-  //       // console.log(urls);
-  //       const result = Promise.all(urls);
-  //       // console.log(result);
-  //     }
-  //     setTimeout(runUrlUpdate, 1000);
-  //   }, 1000);
-  // };
-
   const proxifyUrl = (url) => {
     const proxifiedUrl = new URL('https://allorigins.hexlet.app/get?');
     proxifiedUrl.searchParams.set('disableCache', 'true');
@@ -203,8 +125,9 @@ const run = (initialState, i18nInstance) => {
 
         result
           .then((contents) => combineContent(contents))
-          .then((combinedContent) => updateStateContent(combinedContent))
-          .then(() => { state.loadingProcess.status = 'success'; }); // рендер контента
+          .then(console.log);
+        // .then((combinedContent) => updateStateContent(combinedContent))
+        // .then(() => { state.loadingProcess.status = 'success'; }); // рендер контента
         // .catch((err) => console.log(err)) // TODO написать и добавить обработчик ошибок
       }
       setTimeout(runUrlUpdate, 1000);
@@ -253,16 +176,16 @@ const run = (initialState, i18nInstance) => {
 
     const loading = axios.get(proxifiedUrl)
       .then(parseXML)
-      .then((content) => getFeedsAndPosts(content, submittedUrl))
-      .catch((err) => handleLoadingError(err));
+      .then((content) => getFeedsAndPosts(content, submittedUrl));
+      // .catch((err) => handleLoadingError(err));
 
     const result = Promise.all([validation, loading]);
     // console.log(result);
 
     result
-      .then(([_url, feedsAndPosts]) => {
-        initialState.content.feeds.push(feedsAndPosts.feed);
-        initialState.content.posts.push(...feedsAndPosts.posts);
+      .then(([_url, { feed, posts }]) => {
+        initialState.content.feeds.push(feed);
+        initialState.content.posts.push(...posts);
       })
       .then(() => {
         state.loadingProcess.status = 'success'; // рендер контента
