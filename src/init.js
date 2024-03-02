@@ -182,6 +182,11 @@ const run = (initialState, i18nInstance) => {
   // console.log('>> BEFORE submit → initialState:');
   // console.log(initialState);
 
+  const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get(proxifiedUrl)
+    .then(parseXML)
+    .then((content) => getFeedsAndPosts(content, submittedUrl))
+    .catch((err) => console.log(err.message));
+
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -199,55 +204,27 @@ const run = (initialState, i18nInstance) => {
     state.form.status = 'sending'; // дизейблим форму
 
     // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
-    const validation = schema.validate(submittedUrl, { urls })
-      .catch((err) => { throw new Error(err); });
-
-    const loading = axios.get(proxifiedUrl)
-      .then(parseXML)
-      .then((content) => getFeedsAndPosts(content, submittedUrl));
-      // .catch((err) => handleLoadingError(err));
-
-    const result = Promise.all([validation, loading]);
-    // console.log(result);
-
-    result
-      .then(([_url, { feed, posts }]) => {
+    schema.validate(submittedUrl, { urls })
+      .then(() => loadFeedsAndPosts(proxifiedUrl, submittedUrl))
+      .then(({ feed, posts }) => {
         initialState.content.feeds.push(feed);
         initialState.content.posts.push(...posts);
       })
       .then(() => {
         state.loadingProcess.status = 'success'; // рендер контента
         state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
-      })
-      .catch((err) => {
-        // TODO
-        // 1. Для обновления стейта ПРОЦЕССОВ надо использовать .finally()?
-        // 2.
-        // initialState.form/loadingProcess.error = 'alreadyExists'/'invalidUrl' ИЛИ 'networkError'/'parseError'
-        // state.form/loadingProcess.status = validationError/uploadError
-        // handleFormError()/handleLoadingError()
-        console.log(err);
       });
-
-    // // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
-    // schema.validate(submittedUrl, { urls })
-    //   .then(() => axios.get(proxifiedUrl)
-    //     .then(parseXML)
-    //     .then((content) => getFeedsAndPosts(content, submittedUrl))
-    //     .then((feedsAndPosts) => {
-    //       initialState.content.feeds.push(feedsAndPosts.feed);
-    //       initialState.content.posts.push(...feedsAndPosts.posts);
-    //     })
-
-    //     .then(() => {
-    //       state.loadingProcess.status = 'success';
-    //       state.form.status = 'sent';
-    //     }) // FIXME статус становится 'sent' не сейчас, а после рендера фидов и постов
-    //   )
-    //   .catch((err) => handleFormError(err));
-
-    // addContent(proxifiedUrl);
-    // state.loadingProcess.status = 'success'; // рендер содержимого state.content
+    // .catch((err) => { throw new Error(err) });
+    // .catch((err) => console.log(err.message));
+    // TODO
+    // 1. Для обновления стейта ПРОЦЕССОВ надо использовать .finally()?
+    // 2.
+    // initialState.form/loadingProcess.error = 'alreadyExists'/'invalidUrl' ИЛИ 'networkError'/'parseError'
+    // state.form/loadingProcess.status = validationError/uploadError
+    // handleFormError()/handleLoadingError()
+    // console.log(err);
+    // # КАК обрабатывать ошибки?
+    // рендер по статусу, а ошибки брать из поля которое в этом статусе заполнено – т.е. из поля error
   });
 
   // MODAL_&_POSTS
