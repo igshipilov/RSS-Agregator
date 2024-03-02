@@ -95,15 +95,15 @@ const run = (initialState, i18nInstance) => {
     return proxifiedUrl;
   };
 
-  const combineContent = (contents) => contents.reduce((acc, el) => {
-    acc.feeds.push(el.feed);
-    acc.posts.push(...el.posts);
-    return acc;
-  }, { feeds: [], posts: [] });
+  // const combineContent = (contents) => contents.reduce((acc, el) => {
+  //   acc.feeds.push(el.feed);
+  //   acc.posts.push(...el.posts);
+  //   return acc;
+  // }, { feeds: [], posts: [] });
 
-  const updateStateContent = (result) => {
-    initialState.content = result;
-  };
+  // const updateStateContent = (result) => {
+  //   initialState.content = result;
+  // };
 
   const refresh = () => {
     setTimeout(function runUrlUpdate() {
@@ -115,8 +115,11 @@ const run = (initialState, i18nInstance) => {
         const feedsAndPosts = feeds.map(({ url }) => {
           const proxifiedUrl = proxifyUrl(url);
 
+          // TODO возвращаем функцию _.differenceWith()
           return axios.get(proxifiedUrl)
             .then(parseXML)
+            // вероятно, надо сделать ещё одну функцию getFeedsAndPosts()
+            // и отрабатывать внутри неё _.differenceWith()
             .then((content) => getFeedsAndPosts(content, url))
             .catch((err) => handleLoadingError(err));
         });
@@ -124,14 +127,39 @@ const run = (initialState, i18nInstance) => {
         const result = Promise.all(feedsAndPosts);
 
         result
-          .then((contents) => combineContent(contents))
-          .then(console.log);
+          // вероятно, для корректной работы функции _.differenceWith()
+          // сначала надо сохранить в константу текущий initialState.content
+          // и только потом обнулять initialState.content
+          .then((cont) => {
+            initialState.content = { feeds: [], posts: [] };
+            return cont;
+          })
+          .then((cont) => cont.forEach(({ feed, posts }) => {
+            initialState.content.feeds.push(feed);
+            initialState.content.posts.push(...posts);
+            // наверное здесь добавляем ещё один пуш (!) новых постов (!)
+          }))
+          .then(() => {
+            state.loadingProcess.status = 'success'; // рендер контента
+            state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
+          })
+          .catch((err) => {
+            // TODO
+            // 1. Для обновления стейта ПРОЦЕССОВ надо использовать .finally()?
+            // 2.
+            // initialState.form/loadingProcess.error = 'alreadyExists'/'invalidUrl' ИЛИ 'networkError'/'parseError'
+            // state.form/loadingProcess.status = validationError/uploadError
+            // handleFormError()/handleLoadingError()
+            console.log(err);
+          });
+
+        // .then((contents) => combineContent(contents))
         // .then((combinedContent) => updateStateContent(combinedContent))
         // .then(() => { state.loadingProcess.status = 'success'; }); // рендер контента
         // .catch((err) => console.log(err)) // TODO написать и добавить обработчик ошибок
       }
-      setTimeout(runUrlUpdate, 1000);
-    }, 1000);
+      setTimeout(runUrlUpdate, 5000);
+    }, 5000);
   };
 
   refresh();
