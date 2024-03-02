@@ -49,14 +49,12 @@ const run = (initialState, i18nInstance) => {
 
   const handleLoadingError = (err) => {
     initialState.loadingProcess.error = err.message;
-    state.loadingProcess.status = 'parseError'; // рендер: читаем код ошибки из loadingProcess.error, рендерим текст из i18next
+    state.loadingProcess.status = 'parseError'; // читаем код ошибки из loadingProcess.error, рендерим текст из i18next
   };
 
   const handleFormError = (err) => {
     initialState.form.error = err.message;
-
-    // рендер: читаем код ошибки из form.error, рендерим текст из i18next
-    state.form.status = 'validationError';
+    state.form.status = 'validationError'; // читаем код ошибки из form.error, рендерим текст из i18next
   };
 
   const addFeedsAndPosts = (content, url) => {
@@ -204,14 +202,14 @@ const run = (initialState, i18nInstance) => {
     })
     .required();
 
-    console.log('>> BEFORE submit → initialState:');
-    console.log(initialState);
+    // console.log('>> BEFORE submit → initialState:');
+    // console.log(initialState);
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
 
-    console.log('>> AFTER submit → initialState:');
-    console.log(initialState);
+    // console.log('>> AFTER submit → initialState:');
+    // console.log(initialState);
 
     const formData = new FormData(e.target);
     const submittedUrl = formData.get('url');
@@ -224,21 +222,48 @@ const run = (initialState, i18nInstance) => {
     state.form.status = 'sending'; // дизейблим форму
 
     // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
-    schema.validate(submittedUrl, { urls })
-      .then(() => axios.get(proxifiedUrl)
+    const validation = schema.validate(submittedUrl, { urls })
+      .catch((err) => { throw new Error(err) });
+
+    const loading = axios.get(proxifiedUrl)
         .then(parseXML)
         .then((content) => addFeedsAndPosts(content, submittedUrl))
         .then((feedsAndPosts) => {
           initialState.content.feeds.push(feedsAndPosts.feed);
           initialState.content.posts.push(...feedsAndPosts.posts);
         })
+        .catch((err) => handleLoadingError(err));
+
+    const result = Promise.all([validation, loading])
+
+    result.then(() => {
+      state.loadingProcess.status = 'success'; // рендер контента
+      state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
+    })
+    .catch((err) => {
+      // TODO
+      // state.form/loadingProcess.status = validationError/uploadError
+      // state.form/loadingProcess.error = 'alreadyExists'/'invalidUrl' ИЛИ 'networkError'/'parseError'
+      // handleFormError()/handleLoadingError()
+      console.log(err);
+    });
+
+    // // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
+    // schema.validate(submittedUrl, { urls })
+    //   .then(() => axios.get(proxifiedUrl)
+    //     .then(parseXML)
+    //     .then((content) => addFeedsAndPosts(content, submittedUrl))
+    //     .then((feedsAndPosts) => {
+    //       initialState.content.feeds.push(feedsAndPosts.feed);
+    //       initialState.content.posts.push(...feedsAndPosts.posts);
+    //     })
         
-        .then(() => {
-          state.loadingProcess.status = 'success';
-          state.form.status = 'sent';
-        }) // FIXME статус становится 'sent' не сейчас, а после рендера фидов и постов
-      )
-      .catch((err) => handleFormError(err));
+    //     .then(() => {
+    //       state.loadingProcess.status = 'success';
+    //       state.form.status = 'sent';
+    //     }) // FIXME статус становится 'sent' не сейчас, а после рендера фидов и постов
+    //   )
+    //   .catch((err) => handleFormError(err));
 
     // addContent(proxifiedUrl);
     // state.loadingProcess.status = 'success'; // рендер содержимого state.content
