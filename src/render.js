@@ -89,6 +89,9 @@ const addPosts = (content, i18nInstance) => {
   });
 };
 
+// TODO
+// const handleError = () => {};
+
 // Рендерит контент: заголовки, описание
 const handleProcessStatus = (elements, initialState, i18nInstance, value) => {
   switch (value) {
@@ -114,10 +117,6 @@ const handleProcessStatus = (elements, initialState, i18nInstance, value) => {
   }
 };
 
-// TODO
-// const handleError = () => {};
-
-// TODO
 // Рендерит сообщения об успехе (зел.) и об ошибках (красн.)
 const handleFormStatus = (elements, initialState, i18nInstance, value) => {
   switch (value) {
@@ -138,6 +137,9 @@ const handleFormStatus = (elements, initialState, i18nInstance, value) => {
       elements.textFeedback.classList.remove('text-success');
       elements.textFeedback.classList.add('text-danger');
       elements.textFeedback.textContent = i18nInstance.t(initialState.form.error);
+      break;
+
+    default:
       break;
   }
 };

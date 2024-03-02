@@ -3,6 +3,7 @@
 no-param-reassign,
 no-return-assign,
 max-len,
+no-unused-vars,
 
 */
 
@@ -57,7 +58,7 @@ const run = (initialState, i18nInstance) => {
     state.form.status = 'validationError'; // читаем код ошибки из form.error, рендерим текст из i18next
   };
 
-  const addFeedsAndPosts = (content, url) => {
+  const getFeedsAndPosts = (content, url) => {
     const contentIterable = Array.from(content);
     const feedTitle = contentIterable.find((el) => el.tagName === 'title').textContent;
     const feedDescription = contentIterable.find((el) => el.tagName === 'description').textContent;
@@ -97,12 +98,10 @@ const run = (initialState, i18nInstance) => {
     // console.log(initialState.content);
   };
 
-
-
   const addContent = (url) => {
     axios.get(url)
       .then((response) => parseXML(response))
-      .then((content) => addFeedsAndPosts(content, url))
+      .then((content) => getFeedsAndPosts(content, url))
       .catch((error) => handleLoadingError(error));
   };
 
@@ -116,7 +115,7 @@ const run = (initialState, i18nInstance) => {
   //     initialState.content.posts = [];
 
   //     // FIXME Надо ли обернуть content в Promise?
-  //     // QUESTION: функция addFeedsAndPosts уже наполняет state.content,
+  //     // QUESTION: функция getFeedsAndPosts уже наполняет state.content,
   //     // поэтому эта перезапись лишняя:
   //     // const content = currentFeeds.forEach(({ url }) => addContent(url));
   //     // initialState.content = content;
@@ -161,24 +160,21 @@ const run = (initialState, i18nInstance) => {
 
   // runTimer();
 
-  const refresh = () => {
-    setTimeout(function runUrlUpdate() {
-      if (!!initialState.content.feeds.length) {
-        const urls = initialState.content.feeds.map(({ url }) => axios.get(url)
-          .then(parseXML)
-          .then((content) => addFeedsAndPosts(content, url))
-          // .then(() => console.log(initialState.content))
-        );
-        // console.log(urls);
-        const result = Promise.all(urls);
-        // console.log(result);
-      }
-      setTimeout(runUrlUpdate, 1000);
-    }, 1000);
-  };
-
-  // refresh();
-
+  // const refresh = () => {
+  //   setTimeout(function runUrlUpdate() {
+  //     if (!!initialState.content.feeds.length) {
+  //       const urls = initialState.content.feeds.map(({ url }) => axios.get(url)
+  //         .then(parseXML)
+  //         .then((content) => getFeedsAndPosts(content, url))
+  //         // .then(() => console.log(initialState.content))
+  //       );
+  //       // console.log(urls);
+  //       const result = Promise.all(urls);
+  //       // console.log(result);
+  //     }
+  //     setTimeout(runUrlUpdate, 1000);
+  //   }, 1000);
+  // };
 
   const proxifyUrl = (url) => {
     const proxifiedUrl = new URL('https://allorigins.hexlet.app/get?');
@@ -186,6 +182,42 @@ const run = (initialState, i18nInstance) => {
     proxifiedUrl.searchParams.set('url', url);
     return proxifiedUrl;
   };
+
+  const refresh = () => {
+    setTimeout(function runUrlUpdate() {
+      if (initialState.content.feeds.length) {
+        initialState.loadingProcess.status = 'starting';
+
+        const feedsAndPosts = initialState.content.feeds.map(({ url }) => {
+          const proxifiedUrl = proxifyUrl(url);
+
+          axios.get(proxifiedUrl)
+            .then(parseXML)
+            .then((content) => getFeedsAndPosts(content, url))
+            .catch((err) => handleLoadingError(err));
+        });
+
+        const result = Promise.all(feedsAndPosts);
+        result.then(console.log);
+
+        // result
+        //   // .then((res) => console.log(res[0]))
+        //   // .then(() => initialState.content = { feeds: [], posts: [] })
+        //   .then((urls) => urls.map(([ _url, feedsAndPosts ]) => {
+        //     initialState.content.feeds.push(feedsAndPosts.feed);
+        //     initialState.content.posts.push(...feedsAndPosts.posts);
+        //   }))
+        //   .then(() => {
+        //     state.loadingProcess.status = 'success'; // рендер контента
+        //     state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
+        //   })
+        //   .catch((err) => console.log(err))
+      }
+      setTimeout(runUrlUpdate, 1000);
+    }, 1000);
+  };
+
+  refresh();
 
   setLocale({
     string: {
@@ -202,8 +234,8 @@ const run = (initialState, i18nInstance) => {
     })
     .required();
 
-    // console.log('>> BEFORE submit → initialState:');
-    // console.log(initialState);
+  // console.log('>> BEFORE submit → initialState:');
+  // console.log(initialState);
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -223,41 +255,44 @@ const run = (initialState, i18nInstance) => {
 
     // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
     const validation = schema.validate(submittedUrl, { urls })
-      .catch((err) => { throw new Error(err) });
+      .catch((err) => { throw new Error(err); });
 
     const loading = axios.get(proxifiedUrl)
-        .then(parseXML)
-        .then((content) => addFeedsAndPosts(content, submittedUrl))
-        .then((feedsAndPosts) => {
-          initialState.content.feeds.push(feedsAndPosts.feed);
-          initialState.content.posts.push(...feedsAndPosts.posts);
-        })
-        .catch((err) => handleLoadingError(err));
+      .then(parseXML)
+      .then((content) => getFeedsAndPosts(content, submittedUrl))
+      .catch((err) => handleLoadingError(err));
 
-    const result = Promise.all([validation, loading])
+    const result = Promise.all([validation, loading]);
 
-    result.then(() => {
-      state.loadingProcess.status = 'success'; // рендер контента
-      state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
-    })
-    .catch((err) => {
-      // TODO
-      // state.form/loadingProcess.status = validationError/uploadError
-      // state.form/loadingProcess.error = 'alreadyExists'/'invalidUrl' ИЛИ 'networkError'/'parseError'
-      // handleFormError()/handleLoadingError()
-      console.log(err);
-    });
+    result
+      .then(([_url, feedsAndPosts]) => {
+        initialState.content.feeds.push(feedsAndPosts.feed);
+        initialState.content.posts.push(...feedsAndPosts.posts);
+      })
+      .then(() => {
+        state.loadingProcess.status = 'success'; // рендер контента
+        state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
+      })
+      .catch((err) => {
+        // TODO
+        // 1. Для обновления стейта ПРОЦЕССОВ надо использовать .finally()?
+        // 2.
+        // initialState.form/loadingProcess.error = 'alreadyExists'/'invalidUrl' ИЛИ 'networkError'/'parseError'
+        // state.form/loadingProcess.status = validationError/uploadError
+        // handleFormError()/handleLoadingError()
+        console.log(err);
+      });
 
     // // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
     // schema.validate(submittedUrl, { urls })
     //   .then(() => axios.get(proxifiedUrl)
     //     .then(parseXML)
-    //     .then((content) => addFeedsAndPosts(content, submittedUrl))
+    //     .then((content) => getFeedsAndPosts(content, submittedUrl))
     //     .then((feedsAndPosts) => {
     //       initialState.content.feeds.push(feedsAndPosts.feed);
     //       initialState.content.posts.push(...feedsAndPosts.posts);
     //     })
-        
+
     //     .then(() => {
     //       state.loadingProcess.status = 'success';
     //       state.form.status = 'sent';
@@ -400,7 +435,7 @@ export default () => {
 //     return (resultColl);
 //   };
 
-//   const addFeedsAndPostsToState = (collFeedsAndPosts, isSubmitted) => {
+//   const getFeedsAndPostsToState = (collFeedsAndPosts, isSubmitted) => {
 //     const { posts, feed } = collFeedsAndPosts;
 
 //     const currentPosts = initialState.content.posts;
@@ -447,7 +482,7 @@ export default () => {
 //     axios.get(proxifiedUrl)
 //       .then((content) => parseXML(content))
 //       .then((coll) => addIDs(coll))
-//       .then((collWithIDs) => addFeedsAndPostsToState(collWithIDs, isSubmitted()))
+//       .then((collWithIDs) => getFeedsAndPostsToState(collWithIDs, isSubmitted()))
 //       .then(() => resolve())
 //       .catch((err) => {
 //         if (err.code === 'ERR_NETWORK') {
