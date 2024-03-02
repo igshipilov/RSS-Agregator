@@ -71,9 +71,6 @@ const run = (initialState, i18nInstance) => {
       url,
     };
 
-    // const feeds = [];
-    // feeds.push(feed);
-
     const items = contentIterable.filter((el) => el.tagName === 'item');
 
     const postsInit = [...items].map((item) => {
@@ -88,14 +85,7 @@ const run = (initialState, i18nInstance) => {
 
     const posts = postsInit.reverse();
 
-    // initialState.content.feeds.push(feed);
-    // initialState.content.posts.push(...posts);
-
-    // state.loadingProcess.status = 'success';
-
-    // console.log({ feed, posts })
     return { feed, posts };
-    // console.log(initialState.content);
   };
 
   const addContent = (url) => {
@@ -183,35 +173,39 @@ const run = (initialState, i18nInstance) => {
     return proxifiedUrl;
   };
 
+  const combineContent = (contents) => contents.reduce((acc, el) => {
+    acc.feeds.push(el.feed);
+    acc.posts.push(...el.posts);
+    return acc;
+  }, { feeds: [], posts: [] });
+
+  const updateStateContent = (result) => {
+    initialState.content = result;
+  };
+
   const refresh = () => {
     setTimeout(function runUrlUpdate() {
       if (initialState.content.feeds.length) {
         initialState.loadingProcess.status = 'starting';
 
-        const feedsAndPosts = initialState.content.feeds.map(({ url }) => {
+        const { feeds } = initialState.content;
+
+        const feedsAndPosts = feeds.map(({ url }) => {
           const proxifiedUrl = proxifyUrl(url);
 
-          axios.get(proxifiedUrl)
+          return axios.get(proxifiedUrl)
             .then(parseXML)
             .then((content) => getFeedsAndPosts(content, url))
             .catch((err) => handleLoadingError(err));
         });
 
         const result = Promise.all(feedsAndPosts);
-        result.then(console.log);
 
-        // result
-        //   // .then((res) => console.log(res[0]))
-        //   // .then(() => initialState.content = { feeds: [], posts: [] })
-        //   .then((urls) => urls.map(([ _url, feedsAndPosts ]) => {
-        //     initialState.content.feeds.push(feedsAndPosts.feed);
-        //     initialState.content.posts.push(...feedsAndPosts.posts);
-        //   }))
-        //   .then(() => {
-        //     state.loadingProcess.status = 'success'; // рендер контента
-        //     state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
-        //   })
-        //   .catch((err) => console.log(err))
+        result
+          .then((contents) => combineContent(contents))
+          .then((combinedContent) => updateStateContent(combinedContent))
+          .then(() => { state.loadingProcess.status = 'success'; }); // рендер контента
+        // .catch((err) => console.log(err)) // TODO написать и добавить обработчик ошибок
       }
       setTimeout(runUrlUpdate, 1000);
     }, 1000);
@@ -263,6 +257,7 @@ const run = (initialState, i18nInstance) => {
       .catch((err) => handleLoadingError(err));
 
     const result = Promise.all([validation, loading]);
+    // console.log(result);
 
     result
       .then(([_url, feedsAndPosts]) => {
