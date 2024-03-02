@@ -47,6 +47,18 @@ const run = (initialState, i18nInstance) => {
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
+  const handleLoadingError = (err) => {
+    initialState.loadingProcess.error = err.message;
+    state.loadingProcess.status = 'parseError'; // рендер: читаем код ошибки из loadingProcess.error, рендерим текст из i18next
+  };
+
+  const handleFormError = (err) => {
+    initialState.form.error = err.message;
+
+    // рендер: читаем код ошибки из form.error, рендерим текст из i18next
+    state.form.status = 'validationError';
+  };
+
   const addFeedsAndPosts = (content, url) => {
     const contentIterable = Array.from(content);
     const feedTitle = contentIterable.find((el) => el.tagName === 'title').textContent;
@@ -59,6 +71,9 @@ const run = (initialState, i18nInstance) => {
       id: feedId,
       url,
     };
+
+    // const feeds = [];
+    // feeds.push(feed);
 
     const items = contentIterable.filter((el) => el.tagName === 'item');
 
@@ -74,19 +89,17 @@ const run = (initialState, i18nInstance) => {
 
     const posts = postsInit.reverse();
 
-    initialState.content.feeds.push(feed);
-    initialState.content.posts.push(...posts);
+    // initialState.content.feeds.push(feed);
+    // initialState.content.posts.push(...posts);
 
-    state.loadingProcess.status = 'success';
+    // state.loadingProcess.status = 'success';
 
-    // return { feed, posts };
+    // console.log({ feed, posts })
+    return { feed, posts };
     // console.log(initialState.content);
   };
 
-  const handleLoadingError = (err) => {
-    initialState.loadingProcess.error = err.message;
-    state.loadingProcess.status = 'parseError'; // рендер: читаем код ошибки из loadingProcess.error, рендерим текст из i18next
-  };
+
 
   const addContent = (url) => {
     axios.get(url)
@@ -150,14 +163,24 @@ const run = (initialState, i18nInstance) => {
 
   // runTimer();
 
-  const runTimer = () => {
+  const refresh = () => {
     setTimeout(function runUrlUpdate() {
-      initialState.content.feeds.forEach(({ url }) => addContent(url));
+      if (!!initialState.content.feeds.length) {
+        const urls = initialState.content.feeds.map(({ url }) => axios.get(url)
+          .then(parseXML)
+          .then((content) => addFeedsAndPosts(content, url))
+          // .then(() => console.log(initialState.content))
+        );
+        // console.log(urls);
+        const result = Promise.all(urls);
+        // console.log(result);
+      }
       setTimeout(runUrlUpdate, 1000);
-    }, 0);
+    }, 1000);
   };
 
-  runTimer();
+  // refresh();
+
 
   const proxifyUrl = (url) => {
     const proxifiedUrl = new URL('https://allorigins.hexlet.app/get?');
@@ -181,37 +204,48 @@ const run = (initialState, i18nInstance) => {
     })
     .required();
 
-  const handleFormError = (err) => {
-    initialState.form.error = err.message;
-
-    // рендер: читаем код ошибки из form.error, рендерим текст из i18next
-    state.form.status = 'validationError';
-  };
+    console.log('>> BEFORE submit → initialState:');
+    console.log(initialState);
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
+
+    console.log('>> AFTER submit → initialState:');
+    console.log(initialState);
 
     const formData = new FormData(e.target);
     const submittedUrl = formData.get('url');
     const proxifiedUrl = proxifyUrl(submittedUrl);
     const urls = initialState.content.feeds.map(({ url }) => url);
-    console.log(urls);
+    // console.log('>> submit → urls:');
+    // console.log(urls);
 
     initialState.loadingProcess.status = 'starting';
     state.form.status = 'sending'; // дизейблим форму
 
     // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
     schema.validate(submittedUrl, { urls })
-      // рендер зелёного 'RSS успешно загружен', разблок. форму
-      .then(() => state.form.status = 'sent')
+      .then(() => axios.get(proxifiedUrl)
+        .then(parseXML)
+        .then((content) => addFeedsAndPosts(content, submittedUrl))
+        .then((feedsAndPosts) => {
+          initialState.content.feeds.push(feedsAndPosts.feed);
+          initialState.content.posts.push(...feedsAndPosts.posts);
+        })
+        
+        .then(() => {
+          state.loadingProcess.status = 'success';
+          state.form.status = 'sent';
+        }) // FIXME статус становится 'sent' не сейчас, а после рендера фидов и постов
+      )
       .catch((err) => handleFormError(err));
 
-    addContent(proxifiedUrl);
+    // addContent(proxifiedUrl);
     // state.loadingProcess.status = 'success'; // рендер содержимого state.content
   });
 
+  // MODAL_&_POSTS
   const modal = elements.modal.window;
-
   modal.addEventListener('show.bs.modal', (e) => {
     const button = e.relatedTarget;
     const id = button.getAttribute('data-id');

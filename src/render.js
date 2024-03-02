@@ -119,18 +119,28 @@ const handleProcessStatus = (elements, initialState, i18nInstance, value) => {
 
 // TODO
 // Рендерит сообщения об успехе (зел.) и об ошибках (красн.)
-// const handleFormStatus = (elements, initialState, i18nInstance, value) => {
-//   switch (value) {
-//     case 'sending':
-//       break;
+const handleFormStatus = (elements, initialState, i18nInstance, value) => {
+  switch (value) {
+    case 'sending':
+      break;
 
-//     case 'sent':
-//       break;
+    case 'sent':
+      elements.input.classList.remove('is-invalid');
+      elements.form.reset();
+      elements.input.focus();
+      elements.textFeedback.classList.remove('text-danger');
+      elements.textFeedback.classList.add('text-success');
+      elements.textFeedback.textContent = i18nInstance.t('feedback.success');
+      break;
 
-//     case 'validationError':
-//       break;
-//   }
-// };
+    case 'validationError':
+      elements.input.classList.add('is-invalid');
+      elements.textFeedback.classList.remove('text-success');
+      elements.textFeedback.classList.add('text-danger');
+      elements.textFeedback.textContent = i18nInstance.t(initialState.form.error);
+      break;
+  }
+};
 
 const handleModal = (elements, initialState, value) => {
   const currentPost = document.querySelector(`[data-id="${value}"]`);
@@ -154,7 +164,7 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
       break;
 
     case 'form.status':
-      // handleFormStatus(elements, initialState, i18nInstance, value);
+      handleFormStatus(elements, initialState, i18nInstance, value);
       break;
 
     case 'ui.activePostId':
