@@ -23,7 +23,7 @@ const addTitles = (titleName) => {
 const renderFeeds = (feeds) => {
   const list = document.querySelector('.feeds > .card > ul');
 
-  feeds.map((feed) => {
+  feeds.forEach((feed) => {
     const item = document.createElement('li');
     const title = document.createElement('h3');
     const description = document.createElement('p');
@@ -43,7 +43,7 @@ const renderFeeds = (feeds) => {
 const renderPosts = (posts, initialState, i18nInstance) => {
   const list = document.querySelector('.posts > .card > ul');
 
-  posts.map(({
+  posts.forEach(({
     title, link, id,
   }) => {
     const item = document.createElement('li');

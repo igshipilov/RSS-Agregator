@@ -1,11 +1,4 @@
-/* eslint-disable
-
-no-param-reassign,
-no-return-assign,
-max-len,
-no-unused-vars,
-
-*/
+/* eslint-disable no-param-reassign, no-return-assign, */
 
 import axios from 'axios';
 import _ from 'lodash';
@@ -50,7 +43,7 @@ const run = (initialState, i18nInstance) => {
 
   const handleError = (source, errorMessage, errorStatus) => {
     initialState[source].error = `feedback.${errorMessage}`;
-    state[source].status = errorStatus; // читаем код ошибки из form.error, рендерим текст из i18next
+    state[source].status = errorStatus;
   };
 
   const mappingError = {
@@ -125,12 +118,12 @@ const run = (initialState, i18nInstance) => {
             const newPosts = _.differenceWith(refreshedPosts, posts, comparator);
 
             initialState.content.posts.push(...newPosts);
-            state.loadingProcess.status = 'success'; // рендер контента
+            state.loadingProcess.status = 'success'; // render content
             initialState.loadingProcess.status = 'ready';
 
             console.log(initialState.content.posts);
           })
-          .catch(); // обеспечивает работу приложения даже при сбое get-запроса
+          .catch(); // keep app working even get-query fails
         // TODO надо ли где-то хранить список таких ошибок, учитывая, что мы их не обрабатываем?
       }
       setTimeout(runUrlUpdate, 5000);
@@ -163,8 +156,8 @@ const run = (initialState, i18nInstance) => {
       initialState.content.posts.push(...posts);
     })
     .then(() => {
-      state.loadingProcess.status = 'success'; // рендер контента
-      state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
+      state.loadingProcess.status = 'success'; // triggers render content
+      state.form.status = 'sent'; // triggers render success Feedback
     });
 
   elements.form.addEventListener('submit', (e) => {
