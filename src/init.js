@@ -120,8 +120,6 @@ const run = (initialState, i18nInstance) => {
             initialState.content.posts.push(...newPosts);
             state.loadingProcess.status = 'success'; // render content
             initialState.loadingProcess.status = 'ready';
-
-            console.log(initialState.content.posts);
           })
           .catch(); // keep app working even get-query fails
         // TODO надо ли где-то хранить список таких ошибок, учитывая, что мы их не обрабатываем?
@@ -175,7 +173,6 @@ const run = (initialState, i18nInstance) => {
     schema.validate(submittedUrl, { urls })
       .then(() => loadFeedsAndPosts(proxifiedUrl, submittedUrl))
       .catch((err) => {
-        console.log(err);
         if (err.code) {
           const errorMessage = 'networkError';
           mappingError[errorMessage](errorMessage);
