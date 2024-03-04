@@ -8,7 +8,7 @@ export default {
       view: 'View',
     },
     feedback: {
-      alreadyExists: 'RSS already exists',
+      urlAlreadyExists: 'RSS already exists',
       invalidUrl: 'The link must be a valid URL',
       networkError: 'Network error',
       parseError: 'The resource does not contain valid RSS',

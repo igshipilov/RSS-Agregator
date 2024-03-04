@@ -48,13 +48,13 @@ const run = (initialState, i18nInstance) => {
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
-  const handleLoadingError = (err) => {
-    initialState.loadingProcess.error = err.message;
-    state.loadingProcess.status = 'parseError'; // читаем код ошибки из loadingProcess.error, рендерим текст из i18next
+  const handleLoadingError = (error) => {
+    initialState.loadingProcess.error = `feedback.${error}`;
+    state.loadingProcess.status = 'uploadError'; // читаем код ошибки из loadingProcess.error, рендерим текст из i18next
   };
 
-  const handleFormError = (err) => {
-    initialState.form.error = err.message;
+  const handleFormError = (error) => {
+    initialState.form.error = `feedback.${error}`;
     state.form.status = 'validationError'; // читаем код ошибки из form.error, рендерим текст из i18next
   };
 
@@ -95,15 +95,23 @@ const run = (initialState, i18nInstance) => {
     return proxifiedUrl;
   };
 
-  // const combineContent = (contents) => contents.reduce((acc, el) => {
-  //   acc.feeds.push(el.feed);
-  //   acc.posts.push(...el.posts);
-  //   return acc;
-  // }, { feeds: [], posts: [] });
+  const getFeedsAndPostsToState = (collFeedsAndPosts, isSubmitted) => {
+    const { posts, feed } = collFeedsAndPosts;
 
-  // const updateStateContent = (result) => {
-  //   initialState.content = result;
-  // };
+    const currentPosts = initialState.content.posts;
+    const newPosts = _.differenceWith(posts, currentPosts, _.isEqual);
+    const hasNewPosts = !_.isEmpty(newPosts);
+
+    if (isSubmitted) {
+      state.content.feeds.push(feed);
+    }
+    if (hasNewPosts) {
+      initialState.content.posts.push(...newPosts);
+      state.content.newPosts.push(...newPosts);
+      initialState.content.newPosts = [];
+    }
+  };
+
 
   const refresh = () => {
     setTimeout(function runUrlUpdate() {
@@ -144,12 +152,6 @@ const run = (initialState, i18nInstance) => {
             state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
           })
           .catch((err) => {
-            // TODO
-            // 1. Для обновления стейта ПРОЦЕССОВ надо использовать .finally()?
-            // 2.
-            // initialState.form/loadingProcess.error = 'alreadyExists'/'invalidUrl' ИЛИ 'networkError'/'parseError'
-            // state.form/loadingProcess.status = validationError/uploadError
-            // handleFormError()/handleLoadingError()
             console.log(err);
           });
 
@@ -162,18 +164,18 @@ const run = (initialState, i18nInstance) => {
     }, 5000);
   };
 
-  refresh();
+  // refresh();
 
   setLocale({
     string: {
-      url: 'feedback.invalidUrl',
+      url: 'invalidUrl',
     },
   });
 
   const schema = yup.string()
     .trim()
     .url()
-    .test('not-one-of', 'feedback.alreadyExists', function isNotOneOf(currentUrl) {
+    .test('not-one-of', 'urlAlreadyExists', function isNotOneOf(currentUrl) {
       const { urls } = this.options;
       return !urls.includes(currentUrl);
     })
@@ -185,7 +187,21 @@ const run = (initialState, i18nInstance) => {
   const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get(proxifiedUrl)
     .then(parseXML)
     .then((content) => getFeedsAndPosts(content, submittedUrl))
-    .catch((err) => console.log(err.message));
+    .then(({ feed, posts }) => {
+      initialState.content.feeds.push(feed);
+      initialState.content.posts.push(...posts);
+    })
+    .then(() => {
+      state.loadingProcess.status = 'success'; // рендер контента
+      state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
+    });
+
+  const mappingError = {
+    parseError: (err) => handleLoadingError(err),
+    networkError: (err) => handleLoadingError(err),
+    invalidUrl: (err) => handleFormError(err),
+    urlAlreadyExists: (err) => handleFormError(err),
+  };
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -206,25 +222,7 @@ const run = (initialState, i18nInstance) => {
     // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
     schema.validate(submittedUrl, { urls })
       .then(() => loadFeedsAndPosts(proxifiedUrl, submittedUrl))
-      .then(({ feed, posts }) => {
-        initialState.content.feeds.push(feed);
-        initialState.content.posts.push(...posts);
-      })
-      .then(() => {
-        state.loadingProcess.status = 'success'; // рендер контента
-        state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
-      });
-    // .catch((err) => { throw new Error(err) });
-    // .catch((err) => console.log(err.message));
-    // TODO
-    // 1. Для обновления стейта ПРОЦЕССОВ надо использовать .finally()?
-    // 2.
-    // initialState.form/loadingProcess.error = 'alreadyExists'/'invalidUrl' ИЛИ 'networkError'/'parseError'
-    // state.form/loadingProcess.status = validationError/uploadError
-    // handleFormError()/handleLoadingError()
-    // console.log(err);
-    // # КАК обрабатывать ошибки?
-    // рендер по статусу, а ошибки брать из поля которое в этом статусе заполнено – т.е. из поля error
+      .catch((err) => { mappingError[err.message](err.message) })
   });
 
   // MODAL_&_POSTS
@@ -258,7 +256,7 @@ export default () => {
     },
     form: {
       status: 'waiting', // 'waiting', 'sending', 'sent', 'validationError'
-      error: null, // 'alreadyExists', 'invalidUrl'
+      error: null, // 'urlAlreadyExists', 'invalidUrl'
     },
     content: {
       feeds: [], // [{ title, description, id, url }, ...]
@@ -323,7 +321,7 @@ export default () => {
 //   const schema = yup.string()
 //     .trim()
 //     .url()
-//     .test('not-one-of', 'feedback.alreadyExists', function isNotOneOf(value) {
+//     .test('not-one-of', 'feedback.urlAlreadyExists', function isNotOneOf(value) {
 //       const { urls } = this.options;
 //       return !urls.includes(value);
 //     })

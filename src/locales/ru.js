@@ -8,7 +8,7 @@ export default {
       view: 'Просмотр',
     },
     feedback: {
-      alreadyExists: 'RSS уже существует',
+      urlAlreadyExists: 'RSS уже существует',
       invalidUrl: 'Ссылка должна быть валидным URL',
       networkError: 'Ошибка сети',
       parseError: 'Ресурс не содержит валидный RSS',

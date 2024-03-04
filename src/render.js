@@ -110,6 +110,11 @@ const handleProcessStatus = (elements, initialState, i18nInstance, value) => {
 
     // TODO
     case 'uploadError':
+      const errorCode = initialState.loadingProcess.error;
+      elements.input.classList.add('is-invalid');
+      elements.textFeedback.classList.remove('text-success');
+      elements.textFeedback.classList.add('text-danger');
+      elements.textFeedback.textContent = i18nInstance.t(errorCode);
       break;
 
     default:
@@ -133,10 +138,11 @@ const handleFormStatus = (elements, initialState, i18nInstance, value) => {
       break;
 
     case 'validationError':
+      const errorCode = initialState.form.error;
       elements.input.classList.add('is-invalid');
       elements.textFeedback.classList.remove('text-success');
       elements.textFeedback.classList.add('text-danger');
-      elements.textFeedback.textContent = i18nInstance.t(initialState.form.error);
+      elements.textFeedback.textContent = i18nInstance.t(errorCode);
       break;
 
     default:

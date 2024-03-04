@@ -5,7 +5,7 @@ export default (response) => {
   const errorNode = parsed.querySelector('parsererror');
 
   if (errorNode) {
-    throw new Error('feedback.parseError');
+    throw new Error('parseError');
   } else {
     const { children } = parsed.querySelector('channel');
     return children;
