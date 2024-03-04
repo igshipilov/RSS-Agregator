@@ -48,14 +48,16 @@ const run = (initialState, i18nInstance) => {
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
-  const handleLoadingError = (error) => {
-    initialState.loadingProcess.error = `feedback.${error}`;
-    state.loadingProcess.status = 'uploadError'; // читаем код ошибки из loadingProcess.error, рендерим текст из i18next
-  };
+  const handleError = (source, errorMessage, errorStatus) => {
+    initialState[source].error = `feedback.${errorMessage}`;
+    state[source].status = errorStatus; // читаем код ошибки из form.error, рендерим текст из i18next
+  }
 
-  const handleFormError = (error) => {
-    initialState.form.error = `feedback.${error}`;
-    state.form.status = 'validationError'; // читаем код ошибки из form.error, рендерим текст из i18next
+  const mappingError = {
+    urlAlreadyExists: (errorMessage) => handleError('form', errorMessage, 'validationError'),
+    invalidUrl: (errorMessage) => handleError('form', errorMessage, 'validationError'),
+    networkError: (errorMessage) => handleError('loadingProcess', errorMessage, 'uploadError'),
+    parseError: (errorMessage) => handleError('loadingProcess', errorMessage, 'uploadError'),
   };
 
   const getFeedsAndPosts = (content, url) => {
@@ -95,21 +97,9 @@ const run = (initialState, i18nInstance) => {
     return proxifiedUrl;
   };
 
-  const getFeedsAndPostsToState = (collFeedsAndPosts, isSubmitted) => {
-    const { posts, feed } = collFeedsAndPosts;
-
+  const getNewPosts = (collFeedsAndPosts, isSubmitted) => {
     const currentPosts = initialState.content.posts;
     const newPosts = _.differenceWith(posts, currentPosts, _.isEqual);
-    const hasNewPosts = !_.isEmpty(newPosts);
-
-    if (isSubmitted) {
-      state.content.feeds.push(feed);
-    }
-    if (hasNewPosts) {
-      initialState.content.posts.push(...newPosts);
-      state.content.newPosts.push(...newPosts);
-      initialState.content.newPosts = [];
-    }
   };
 
 
@@ -118,7 +108,7 @@ const run = (initialState, i18nInstance) => {
       if (initialState.content.feeds.length) {
         initialState.loadingProcess.status = 'starting';
 
-        const { feeds } = initialState.content;
+        const { feeds, posts } = initialState.content;
 
         const feedsAndPosts = feeds.map(({ url }) => {
           const proxifiedUrl = proxifyUrl(url);
@@ -196,12 +186,17 @@ const run = (initialState, i18nInstance) => {
       state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
     });
 
-  const mappingError = {
-    parseError: (err) => handleLoadingError(err),
-    networkError: (err) => handleLoadingError(err),
-    invalidUrl: (err) => handleFormError(err),
-    urlAlreadyExists: (err) => handleFormError(err),
-  };
+  // const handleLoadingError = (error) => {
+  //   initialState.loadingProcess.error = `feedback.${error}`;
+  //   state.loadingProcess.status = 'uploadError'; // читаем код ошибки из loadingProcess.error, рендерим текст из i18next
+  // };
+
+  // const handleFormError = (error) => {
+  //   initialState.form.error = `feedback.${error}`;
+  //   state.form.status = 'validationError'; // читаем код ошибки из form.error, рендерим текст из i18next
+  // };
+
+
 
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -222,7 +217,7 @@ const run = (initialState, i18nInstance) => {
     // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
     schema.validate(submittedUrl, { urls })
       .then(() => loadFeedsAndPosts(proxifiedUrl, submittedUrl))
-      .catch((err) => { mappingError[err.message](err.message) })
+      .catch((err) => mappingError[err.message](err.message))
   });
 
   // MODAL_&_POSTS
