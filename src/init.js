@@ -97,12 +97,6 @@ const run = (initialState, i18nInstance) => {
     return proxifiedUrl;
   };
 
-  const getNewPosts = (collFeedsAndPosts, isSubmitted) => {
-    const currentPosts = initialState.content.posts;
-    const newPosts = _.differenceWith(posts, currentPosts, _.isEqual);
-  };
-
-
   const refresh = () => {
     setTimeout(function runUrlUpdate() {
       if (initialState.content.feeds.length) {
@@ -119,42 +113,37 @@ const run = (initialState, i18nInstance) => {
             // вероятно, надо сделать ещё одну функцию getFeedsAndPosts()
             // и отрабатывать внутри неё _.differenceWith()
             .then((content) => getFeedsAndPosts(content, url))
-            .catch((err) => handleLoadingError(err));
         });
 
         const result = Promise.all(feedsAndPosts);
 
         result
-          // вероятно, для корректной работы функции _.differenceWith()
-          // сначала надо сохранить в константу текущий initialState.content
-          // и только потом обнулять initialState.content
-          .then((cont) => {
-            initialState.content = { feeds: [], posts: [] };
-            return cont;
-          })
-          .then((cont) => cont.forEach(({ feed, posts }) => {
-            initialState.content.feeds.push(feed);
-            initialState.content.posts.push(...posts);
-            // наверное здесь добавляем ещё один пуш (!) новых постов (!)
-          }))
-          .then(() => {
-            state.loadingProcess.status = 'success'; // рендер контента
-            state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
-          })
-          .catch((err) => {
-            console.log(err);
-          });
+        // вытаскиваем все рефрешнутые посты
+        // находим дифф с текущими постами (posts)
+        // пушим дифф в initialState.content.posts
+          .then((refreshedContent) => {
+            const refreshedPosts = refreshedContent.reduce((acc, el) => {
+              acc.push(...el.posts)
+              return acc;
+            }, []);
 
-        // .then((contents) => combineContent(contents))
-        // .then((combinedContent) => updateStateContent(combinedContent))
-        // .then(() => { state.loadingProcess.status = 'success'; }); // рендер контента
-        // .catch((err) => console.log(err)) // TODO написать и добавить обработчик ошибок
+            const comparator = (first, second) => first.title === second.title;
+            const newPosts = _.differenceWith(refreshedPosts, posts, comparator);
+
+            initialState.content.posts.push(...newPosts);
+            state.loadingProcess.status = 'success'; // рендер контента
+            initialState.loadingProcess.status = 'ready';
+
+            console.log(initialState.content.posts);
+          })
+          .catch(); // обеспечивает работу приложения даже при сбое get-запроса
+          // TODO надо ли где-то хранить список таких ошибок, учитывая, что мы их не обрабатываем?
       }
       setTimeout(runUrlUpdate, 5000);
     }, 5000);
   };
 
-  // refresh();
+  refresh();
 
   setLocale({
     string: {
@@ -227,6 +216,7 @@ const run = (initialState, i18nInstance) => {
     const id = button.getAttribute('data-id');
 
     state.ui.activePostId = id;
+    initialState.ui.clickedPostsIds.push(id);
   });
 
   const { posts } = elements.content;
@@ -236,6 +226,8 @@ const run = (initialState, i18nInstance) => {
     if (el.tagName === 'A') {
       const { id } = el.dataset;
       state.ui.activePostId = id;
+      initialState.ui.clickedPostsIds.push(id);
+
     }
   });
 };
@@ -259,6 +251,7 @@ export default () => {
     },
     ui: {
       activePostId: null, // used by modal
+      clickedPostsIds: [],
     },
   };
 

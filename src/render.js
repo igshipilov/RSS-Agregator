@@ -29,11 +29,11 @@ const addTitles = (titleName) => {
   return container;
 };
 
-const addFeeds = (content) => {
+const addFeeds = (feeds) => {
   const list = document.querySelector('.feeds > .card > ul');
   // list.textContent = '';
 
-  content.feeds.map((feed) => {
+  feeds.map((feed) => {
     const item = document.createElement('li');
     const title = document.createElement('h3');
     const description = document.createElement('p');
@@ -50,10 +50,10 @@ const addFeeds = (content) => {
   });
 };
 
-const addPosts = (content, i18nInstance) => {
+const addPosts = (posts, initialState, i18nInstance) => {
   const list = document.querySelector('.posts > .card > ul');
 
-  content.posts.map(({
+  posts.map(({
     title, link, id,
   }) => {
     const item = document.createElement('li');
@@ -68,7 +68,15 @@ const addPosts = (content, i18nInstance) => {
       'border-0',
       'border-end-0',
     );
-    titleElement.classList.add('fw-bold');
+
+    // 
+    if (initialState.ui.clickedPostsIds.includes(id)) {
+      titleElement.classList.add('fw-normal', 'link-secondary');
+    } else {
+      titleElement.classList.add('fw-bold');
+    }
+    // 
+
     button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
 
     titleElement.setAttribute('href', `${link}`);
@@ -104,8 +112,8 @@ const handleProcessStatus = (elements, initialState, i18nInstance, value) => {
       elements.content.feeds.append(addTitles(i18nInstance.t('mainInterface.feedsTitle')));
       elements.content.posts.append(addTitles(i18nInstance.t('mainInterface.postsTitle')));
 
-      addFeeds(initialState.content);
-      addPosts(initialState.content, i18nInstance);
+      addFeeds(initialState.content.feeds);
+      addPosts(initialState.content.posts, initialState, i18nInstance);
       break;
 
     // TODO
