@@ -154,8 +154,8 @@ const run = (initialState, i18nInstance) => {
     })
     .required();
 
-  const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get('http://localhost:5005/') // debug
-  // const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get(proxifiedUrl)
+  // const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get('http://localhost:5005/') // debug
+  const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get(proxifiedUrl)
     .then(parseXML)
     .then((content) => getFeedsAndPosts(content, submittedUrl))
     .then(({ feed, posts }) => {
