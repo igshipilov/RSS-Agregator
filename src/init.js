@@ -107,20 +107,14 @@ const run = (initialState, i18nInstance) => {
         const feedsAndPosts = feeds.map(({ url }) => {
           const proxifiedUrl = proxifyUrl(url);
 
-          // TODO возвращаем функцию _.differenceWith()
           return axios.get(proxifiedUrl)
             .then(parseXML)
-            // вероятно, надо сделать ещё одну функцию getFeedsAndPosts()
-            // и отрабатывать внутри неё _.differenceWith()
             .then((content) => getFeedsAndPosts(content, url));
         });
 
         const result = Promise.all(feedsAndPosts);
 
         result
-        // вытаскиваем все рефрешнутые посты
-        // находим дифф с текущими постами (posts)
-        // пушим дифф в initialState.content.posts
           .then((refreshedContent) => {
             const refreshedPosts = refreshedContent.reduce((acc, el) => {
               acc.push(...el.posts);
@@ -160,10 +154,8 @@ const run = (initialState, i18nInstance) => {
     })
     .required();
 
-  // console.log('>> BEFORE submit → initialState:');
-  // console.log(initialState);
-
-  const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get(proxifiedUrl)
+  const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get('http://localhost:5005/') // debug
+  // const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get(proxifiedUrl)
     .then(parseXML)
     .then((content) => getFeedsAndPosts(content, submittedUrl))
     .then(({ feed, posts }) => {
@@ -175,36 +167,29 @@ const run = (initialState, i18nInstance) => {
       state.form.status = 'sent'; // рендер зелёного фидбека "RSS успешно загружен"
     });
 
-  // const handleLoadingError = (error) => {
-  //   initialState.loadingProcess.error = `feedback.${error}`;
-  //   state.loadingProcess.status = 'uploadError'; // читаем код ошибки из loadingProcess.error, рендерим текст из i18next
-  // };
-
-  // const handleFormError = (error) => {
-  //   initialState.form.error = `feedback.${error}`;
-  //   state.form.status = 'validationError'; // читаем код ошибки из form.error, рендерим текст из i18next
-  // };
-
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
-
-    // console.log('>> AFTER submit → initialState:');
-    // console.log(initialState);
 
     const formData = new FormData(e.target);
     const submittedUrl = formData.get('url');
     const proxifiedUrl = proxifyUrl(submittedUrl);
     const urls = initialState.content.feeds.map(({ url }) => url);
-    // console.log('>> submit → urls:');
-    // console.log(urls);
 
     initialState.loadingProcess.status = 'starting';
-    state.form.status = 'sending'; // дизейблим форму
+    state.form.status = 'sending'; // disable form
 
     // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
     schema.validate(submittedUrl, { urls })
       .then(() => loadFeedsAndPosts(proxifiedUrl, submittedUrl))
-      .catch((err) => mappingError[err.message](err.message));
+      .catch((err) => {
+        console.log(err);
+        if (err.code) {
+          const errorMessage = 'networkError';
+          mappingError[errorMessage](errorMessage);
+        } else {
+          mappingError[err.message](err.message);
+        }
+      });
   });
 
   // MODAL_&_POSTS
