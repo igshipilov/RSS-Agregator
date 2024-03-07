@@ -143,7 +143,7 @@ const handleFormRender = (elements, initialState, i18nInstance, path, value) => 
 const handleRenderMessages = (elements, initialState, i18nInstance, path, value) => {
   switch (value) {
     case 'sending':
-      // renderMessageLoading(elements, i18nInstance);
+      // renderMessageLoading(elements, i18nInstance); // TODO
       break;
 
     case 'sent':
@@ -173,6 +173,12 @@ const handleModal = (elements, initialState, value) => {
   elements.modal.fullArticle.setAttribute('href', `${link}`);
 };
 
+const cleanContentAndRenderTitles = (elements, i18nInstance, path) => {
+  const source = path.replace('content.', '');
+  elements.content[source].textContent = '';
+  elements.content[source].append(addTitles(i18nInstance.t(`mainInterface.${source}Title`)));
+};
+
 export default (elements, initialState, i18nInstance) => (path, value) => {
   switch (path) {
     case 'loadingProcess.status':
@@ -188,15 +194,12 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
       break;
 
     case 'content.feeds':
-      elements.content.feeds.textContent = '';
-      elements.content.posts.textContent = '';
-      elements.content.feeds.append(addTitles(i18nInstance.t('mainInterface.feedsTitle')));
-      elements.content.posts.append(addTitles(i18nInstance.t('mainInterface.postsTitle')));
-
+      cleanContentAndRenderTitles(elements, i18nInstance, path);
       renderFeeds(initialState.content.feeds);
       break;
 
     case 'content.posts':
+      cleanContentAndRenderTitles(elements, i18nInstance, path);
       renderPosts(initialState.content.posts, initialState, i18nInstance);
       break;
 

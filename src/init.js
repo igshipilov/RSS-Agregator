@@ -57,6 +57,7 @@ const run = (initialState, i18nInstance) => {
       const link = item.querySelector('link').textContent;
       const description = item.querySelector('description').textContent;
       const id = _.uniqueId();
+
       return {
         title, link, description, id, feedId,
       };
@@ -71,40 +72,42 @@ const run = (initialState, i18nInstance) => {
     const proxifiedUrl = new URL('https://allorigins.hexlet.app/get?');
     proxifiedUrl.searchParams.set('disableCache', 'true');
     proxifiedUrl.searchParams.set('url', url);
+
     return proxifiedUrl;
   };
 
+  function runUrlUpdate() {
+    const { feeds, posts } = initialState.content;
+
+    const feedsAndPosts = feeds.map(({ url }) => {
+      const proxifiedUrl = proxifyUrl(url);
+
+      return axios.get(proxifiedUrl)
+        .then(parseXML)
+        .then((content) => getFeedsAndPosts(content, url));
+    });
+
+    const result = Promise.all(feedsAndPosts);
+
+    result
+      .then((refreshedContent) => {
+        const refreshedPosts = refreshedContent.reduce((acc, el) => {
+          acc.push(...el.posts);
+          return acc;
+        }, []);
+
+        const comparator = (first, second) => first.title === second.title;
+        const newPosts = _.differenceWith(refreshedPosts, posts, comparator);
+        if (newPosts.length) {
+          state.content.posts.push(...newPosts);
+        }
+      })
+      .catch((err) => console.error(err))
+      .finally(() => setTimeout(runUrlUpdate, 5000));
+  }
+
   const refresh = () => {
-    setTimeout(function runUrlUpdate() {
-      const { feeds, posts } = initialState.content;
-
-      const feedsAndPosts = feeds.map(({ url }) => {
-        const proxifiedUrl = proxifyUrl(url);
-
-        return axios.get(proxifiedUrl)
-          .then(parseXML)
-          .then((content) => getFeedsAndPosts(content, url));
-      });
-
-      const result = Promise.all(feedsAndPosts);
-
-      result
-        .then((refreshedContent) => {
-          const refreshedPosts = refreshedContent.reduce((acc, el) => {
-            acc.push(...el.posts);
-            return acc;
-          }, []);
-
-          const comparator = (first, second) => first.title === second.title;
-          const newPosts = _.differenceWith(refreshedPosts, posts, comparator);
-
-          if (newPosts.length) {
-            state.content.posts.push(...newPosts);
-          }
-        })
-        .catch((err) => console.error(err))
-        .finally(() => setTimeout(runUrlUpdate, 5000));
-    }, 5000);
+    setTimeout(runUrlUpdate(), 5000);
   };
 
   refresh();
@@ -127,8 +130,7 @@ const run = (initialState, i18nInstance) => {
   const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => {
     state.loadingProcess.status = 'starting';
 
-    // return axios.get('http://localhost:5005/')
-    return axios.get(proxifiedUrl) // debug network error
+    return axios.get(proxifiedUrl)
       .then((response) => {
         const content = parseXML(response);
         const { feed, posts } = getFeedsAndPosts(content, submittedUrl);
@@ -141,7 +143,6 @@ const run = (initialState, i18nInstance) => {
       })
       .catch((err) => {
         if (err.code === 'ERR_NETWORK') {
-          console.log(err);
           initialState.loadingProcess.error = 'feedback.networkError';
         } else {
           initialState.loadingProcess.error = `feedback.${err.message}`;
@@ -172,8 +173,10 @@ const run = (initialState, i18nInstance) => {
     const el = e.target;
     const { id } = el.dataset;
 
-    state.ui.activePostId = id;
-    initialState.ui.clickedPostsIds.push(id);
+    if (id) {
+      state.ui.activePostId = id;
+      initialState.ui.clickedPostsIds.push(id);
+    }
   });
 };
 
