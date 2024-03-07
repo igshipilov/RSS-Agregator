@@ -128,17 +128,30 @@ const renderMessageSuccess = (elements, i18nInstance) => {
   elements.textFeedback.textContent = i18nInstance.t('feedback.success');
 };
 
+const toggleFormDisable = (elements) => {
+  const button = elements.buttons.add;
+  const { input } = elements;
+
+  button.toggleAttribute('disabled');
+  input.toggleAttribute('readonly');
+};
+
 const handleRenderMessages = (elements, initialState, i18nInstance, path, value) => {
   switch (value) {
     case 'sending':
+      toggleFormDisable(elements);
       break;
 
     case 'sent':
       renderMessageSuccess(elements, i18nInstance);
+      toggleFormDisable(elements);
+
       break;
 
     case 'validationError':
       renderMessageError(initialState, elements, i18nInstance, path);
+      toggleFormDisable(elements);
+
       break;
 
     default:

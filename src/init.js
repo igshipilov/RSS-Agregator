@@ -158,10 +158,9 @@ const run = (initialState, i18nInstance) => {
     const submittedUrl = formData.get('url');
     const proxifiedUrl = proxifyUrl(submittedUrl);
     const urls = initialState.content.feeds.map(({ url }) => url);
-    // initialState.loadingProcess.status = 'starting';
-    state.form.status = 'sending'; // disable form
 
-    // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
+    state.form.status = 'sending';
+
     schema.validate(submittedUrl, { urls })
       .then(() => loadFeedsAndPosts(proxifiedUrl, submittedUrl))
       .catch((err) => {
@@ -171,29 +170,17 @@ const run = (initialState, i18nInstance) => {
         } else {
           mappingError[err.message](err.message);
         }
+        state.form.status = 'sent';
       });
-  });
-
-  // MODAL_&_POSTS
-  const modal = elements.modal.window;
-  modal.addEventListener('show.bs.modal', (e) => {
-    const button = e.relatedTarget;
-    const id = button.getAttribute('data-id');
-
-    state.ui.activePostId = id;
-    initialState.ui.clickedPostsIds.push(id);
   });
 
   const { posts } = elements.content;
   posts.addEventListener('click', (e) => {
     const el = e.target;
+    const { id } = el.dataset;
 
-    if (el.tagName === 'A') {
-      const { id } = el.dataset;
-
-      state.ui.activePostId = id;
-      initialState.ui.clickedPostsIds.push(id);
-    }
+    state.ui.activePostId = id;
+    initialState.ui.clickedPostsIds.push(id);
   });
 };
 
