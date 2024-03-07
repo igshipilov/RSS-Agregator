@@ -88,34 +88,11 @@ const renderPosts = (posts, initialState, i18nInstance) => {
 const renderMessageError = (initialState, elements, i18nInstance, path) => {
   const currentProcess = path.replace('.status', '');
   const errorCode = initialState[currentProcess].error;
+
   elements.input.classList.add('is-invalid');
   elements.textFeedback.classList.remove('text-success');
   elements.textFeedback.classList.add('text-danger');
   elements.textFeedback.textContent = i18nInstance.t(errorCode);
-};
-
-const handleRenderContent = (elements, initialState, i18nInstance, path, value) => {
-  switch (value) {
-    case 'starting':
-      break;
-
-    case 'success':
-      elements.content.feeds.textContent = '';
-      elements.content.posts.textContent = '';
-      elements.content.feeds.append(addTitles(i18nInstance.t('mainInterface.feedsTitle')));
-      elements.content.posts.append(addTitles(i18nInstance.t('mainInterface.postsTitle')));
-
-      renderFeeds(initialState.content.feeds);
-      renderPosts(initialState.content.posts, initialState, i18nInstance);
-      break;
-
-    case 'uploadError':
-      renderMessageError(initialState, elements, i18nInstance, path);
-      break;
-
-    default:
-      throw new Error(`Unknown value: ${value}`);
-  }
 };
 
 const renderMessageSuccess = (elements, i18nInstance) => {
@@ -127,6 +104,13 @@ const renderMessageSuccess = (elements, i18nInstance) => {
   elements.textFeedback.textContent = i18nInstance.t('feedback.success');
 };
 
+// TODO
+// const renderMessageLoading = (elements, i18nInstance) => {
+//   elements.input.classList.remove('is-invalid');
+//   elements.textFeedback.classList.remove('text-danger', 'text-success');
+//   elements.textFeedback.textContent = i18nInstance.t('feedback.loading');
+// };
+
 const toggleFormDisable = (elements) => {
   const button = elements.buttons.add;
   const { input } = elements;
@@ -135,22 +119,39 @@ const toggleFormDisable = (elements) => {
   input.toggleAttribute('readonly');
 };
 
+const handleFormRender = (elements, initialState, i18nInstance, path, value) => {
+  switch (value) {
+    case 'starting':
+      toggleFormDisable(elements);
+      break;
+
+    case 'success':
+      toggleFormDisable(elements);
+      break;
+
+    case 'uploadError':
+      renderMessageError(initialState, elements, i18nInstance, path);
+      toggleFormDisable(elements);
+      break;
+
+    default:
+      toggleFormDisable(elements);
+      throw new Error(`Unknown value: ${value}`);
+  }
+};
+
 const handleRenderMessages = (elements, initialState, i18nInstance, path, value) => {
   switch (value) {
     case 'sending':
-      toggleFormDisable(elements);
+      // renderMessageLoading(elements, i18nInstance);
       break;
 
     case 'sent':
       renderMessageSuccess(elements, i18nInstance);
-      toggleFormDisable(elements);
-
       break;
 
     case 'validationError':
       renderMessageError(initialState, elements, i18nInstance, path);
-      toggleFormDisable(elements);
-
       break;
 
     default:
@@ -175,7 +176,7 @@ const handleModal = (elements, initialState, value) => {
 export default (elements, initialState, i18nInstance) => (path, value) => {
   switch (path) {
     case 'loadingProcess.status':
-      handleRenderContent(elements, initialState, i18nInstance, path, value);
+      handleFormRender(elements, initialState, i18nInstance, path, value);
       break;
 
     case 'form.status':
@@ -184,6 +185,19 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
 
     case 'ui.activePostId':
       handleModal(elements, initialState, value);
+      break;
+
+    case 'content.feeds':
+      elements.content.feeds.textContent = '';
+      elements.content.posts.textContent = '';
+      elements.content.feeds.append(addTitles(i18nInstance.t('mainInterface.feedsTitle')));
+      elements.content.posts.append(addTitles(i18nInstance.t('mainInterface.postsTitle')));
+
+      renderFeeds(initialState.content.feeds);
+      break;
+
+    case 'content.posts':
+      renderPosts(initialState.content.posts, initialState, i18nInstance);
       break;
 
     default:

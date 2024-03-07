@@ -41,18 +41,6 @@ const run = (initialState, i18nInstance) => {
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
-  const handleError = (source, errorMessage, errorStatus) => {
-    initialState[source].error = `feedback.${errorMessage}`;
-    state[source].status = errorStatus;
-  };
-
-  const mappingError = {
-    urlAlreadyExists: (errorMessage) => handleError('form', errorMessage, 'validationError'),
-    invalidUrl: (errorMessage) => handleError('form', errorMessage, 'validationError'),
-    networkError: (errorMessage) => handleError('loadingProcess', errorMessage, 'uploadError'),
-    parseError: (errorMessage) => handleError('loadingProcess', errorMessage, 'uploadError'),
-  };
-
   const getFeedsAndPosts = (content, url) => {
     const { title: feedTitle, description: feedDescription, items } = content;
     const feedId = _.uniqueId();
@@ -88,8 +76,6 @@ const run = (initialState, i18nInstance) => {
 
   const refresh = () => {
     setTimeout(function runUrlUpdate() {
-      initialState.loadingProcess.status = 'starting';
-
       const { feeds, posts } = initialState.content;
 
       const feedsAndPosts = feeds.map(({ url }) => {
@@ -112,9 +98,9 @@ const run = (initialState, i18nInstance) => {
           const comparator = (first, second) => first.title === second.title;
           const newPosts = _.differenceWith(refreshedPosts, posts, comparator);
 
-          initialState.content.posts.push(...newPosts);
-          state.loadingProcess.status = 'success';
-          initialState.loadingProcess.status = 'ready';
+          if (newPosts.length) {
+            state.content.posts.push(...newPosts);
+          }
         })
         .catch((err) => console.error(err))
         .finally(() => setTimeout(runUrlUpdate, 5000));
@@ -138,18 +124,31 @@ const run = (initialState, i18nInstance) => {
     })
     .required();
 
-  const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get(proxifiedUrl)
-    .then((response) => {
-      initialState.loadingProcess.status = 'starting';
-      const content = parseXML(response);
-      const { feed, posts } = getFeedsAndPosts(content, submittedUrl);
+  const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => {
+    state.loadingProcess.status = 'starting';
 
-      initialState.content.feeds.push(feed);
-      initialState.content.posts.push(...posts);
-      state.loadingProcess.status = 'success';
-      state.form.status = 'sent';
-    });
+    // return axios.get('http://localhost:5005/')
+    return axios.get(proxifiedUrl) // debug network error
+      .then((response) => {
+        const content = parseXML(response);
+        const { feed, posts } = getFeedsAndPosts(content, submittedUrl);
 
+        state.content.feeds.push(feed);
+        state.content.posts.push(...posts);
+
+        state.loadingProcess.status = 'success';
+        state.form.status = 'sent';
+      })
+      .catch((err) => {
+        if (err.code === 'ERR_NETWORK') {
+          console.log(err);
+          initialState.loadingProcess.error = 'feedback.networkError';
+        } else {
+          initialState.loadingProcess.error = `feedback.${err.message}`;
+        }
+        state.loadingProcess.status = 'uploadError';
+      });
+  };
   elements.form.addEventListener('submit', (e) => {
     e.preventDefault();
 
@@ -163,13 +162,8 @@ const run = (initialState, i18nInstance) => {
     schema.validate(submittedUrl, { urls })
       .then(() => loadFeedsAndPosts(proxifiedUrl, submittedUrl))
       .catch((err) => {
-        if (err.code) {
-          const errorMessage = 'networkError';
-          mappingError[errorMessage](errorMessage);
-        } else {
-          mappingError[err.message](err.message);
-        }
-        state.form.status = 'sent';
+        initialState.form.error = `feedback.${err.message}`;
+        state.form.status = 'validationError';
       });
   });
 

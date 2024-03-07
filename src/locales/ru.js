@@ -20,6 +20,7 @@ export default {
       formPlaceholder: 'Ссылка RSS',
       postsTitle: 'Посты',
       feedsTitle: 'Фиды',
+      loading: 'RSS загружается...',
     },
   },
 };
