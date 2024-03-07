@@ -94,7 +94,6 @@ const renderMessageError = (initialState, elements, i18nInstance, path) => {
   elements.textFeedback.textContent = i18nInstance.t(errorCode);
 };
 
-// Render content
 const handleRenderContent = (elements, initialState, i18nInstance, path, value) => {
   switch (value) {
     case 'starting':
@@ -174,7 +173,6 @@ const handleModal = (elements, initialState, value) => {
 };
 
 export default (elements, initialState, i18nInstance) => (path, value) => {
-  // console.log(path);
   switch (path) {
     case 'loadingProcess.status':
       handleRenderContent(elements, initialState, i18nInstance, path, value);

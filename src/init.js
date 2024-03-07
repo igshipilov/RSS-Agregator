@@ -113,7 +113,7 @@ const run = (initialState, i18nInstance) => {
           const newPosts = _.differenceWith(refreshedPosts, posts, comparator);
 
           initialState.content.posts.push(...newPosts);
-          state.loadingProcess.status = 'success'; // render content
+          state.loadingProcess.status = 'success';
           initialState.loadingProcess.status = 'ready';
         })
         .catch((err) => console.error(err))
@@ -138,7 +138,6 @@ const run = (initialState, i18nInstance) => {
     })
     .required();
 
-  // const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get('http://localhost:5005/') // debug
   const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get(proxifiedUrl)
     .then((response) => {
       initialState.loadingProcess.status = 'starting';
@@ -147,8 +146,8 @@ const run = (initialState, i18nInstance) => {
 
       initialState.content.feeds.push(feed);
       initialState.content.posts.push(...posts);
-      state.loadingProcess.status = 'success'; // triggers render content
-      state.form.status = 'sent'; // triggers render success Feedback
+      state.loadingProcess.status = 'success';
+      state.form.status = 'sent';
     });
 
   elements.form.addEventListener('submit', (e) => {
@@ -190,19 +189,19 @@ export default () => {
   const initialState = {
     lng: defaultLanguage,
     loadingProcess: {
-      status: 'ready', // 'ready', 'starting', 'success', 'uploadError'
-      error: null, // 'networkError', 'parseError'
+      status: 'ready',
+      error: null,
     },
     form: {
-      status: 'waiting', // 'waiting', 'sending', 'sent', 'validationError'
-      error: null, // 'urlAlreadyExists', 'invalidUrl'
+      status: 'waiting',
+      error: null,
     },
     content: {
-      feeds: [], // [{ title, description, id, url }, ...]
-      posts: [], // [{ title, link, description, id, feedId }, ...]
+      feeds: [],
+      posts: [],
     },
     ui: {
-      activePostId: null, // used by modal
+      activePostId: null,
       clickedPostsIds: [],
     },
   };
