@@ -54,9 +54,7 @@ const run = (initialState, i18nInstance) => {
   };
 
   const getFeedsAndPosts = (content, url) => {
-    const contentIterable = Array.from(content);
-    const feedTitle = contentIterable.find((el) => el.tagName === 'title').textContent;
-    const feedDescription = contentIterable.find((el) => el.tagName === 'description').textContent;
+    const { title: feedTitle, description: feedDescription, items } = content;
     const feedId = _.uniqueId();
 
     const feed = {
@@ -65,8 +63,6 @@ const run = (initialState, i18nInstance) => {
       id: feedId,
       url,
     };
-
-    const items = contentIterable.filter((el) => el.tagName === 'item');
 
     const postsInit = [...items].map((item) => {
       const title = item.querySelector('title').textContent;
@@ -92,39 +88,36 @@ const run = (initialState, i18nInstance) => {
 
   const refresh = () => {
     setTimeout(function runUrlUpdate() {
-      if (initialState.content.feeds.length) {
-        initialState.loadingProcess.status = 'starting';
+      initialState.loadingProcess.status = 'starting';
 
-        const { feeds, posts } = initialState.content;
+      const { feeds, posts } = initialState.content;
 
-        const feedsAndPosts = feeds.map(({ url }) => {
-          const proxifiedUrl = proxifyUrl(url);
+      const feedsAndPosts = feeds.map(({ url }) => {
+        const proxifiedUrl = proxifyUrl(url);
 
-          return axios.get(proxifiedUrl)
-            .then(parseXML)
-            .then((content) => getFeedsAndPosts(content, url));
-        });
+        return axios.get(proxifiedUrl)
+          .then(parseXML)
+          .then((content) => getFeedsAndPosts(content, url));
+      });
 
-        const result = Promise.all(feedsAndPosts);
+      const result = Promise.all(feedsAndPosts);
 
-        result
-          .then((refreshedContent) => {
-            const refreshedPosts = refreshedContent.reduce((acc, el) => {
-              acc.push(...el.posts);
-              return acc;
-            }, []);
+      result
+        .then((refreshedContent) => {
+          const refreshedPosts = refreshedContent.reduce((acc, el) => {
+            acc.push(...el.posts);
+            return acc;
+          }, []);
 
-            const comparator = (first, second) => first.title === second.title;
-            const newPosts = _.differenceWith(refreshedPosts, posts, comparator);
+          const comparator = (first, second) => first.title === second.title;
+          const newPosts = _.differenceWith(refreshedPosts, posts, comparator);
 
-            initialState.content.posts.push(...newPosts);
-            state.loadingProcess.status = 'success'; // render content
-            initialState.loadingProcess.status = 'ready';
-          })
-          .catch(); // keep app working even get-query fails
-        // TODO надо ли где-то хранить список таких ошибок, учитывая, что мы их не обрабатываем?
-      }
-      setTimeout(runUrlUpdate, 5000);
+          initialState.content.posts.push(...newPosts);
+          state.loadingProcess.status = 'success'; // render content
+          initialState.loadingProcess.status = 'ready';
+        })
+        .catch((err) => console.error(err))
+        .finally(() => setTimeout(runUrlUpdate, 5000));
     }, 5000);
   };
 
@@ -147,13 +140,13 @@ const run = (initialState, i18nInstance) => {
 
   // const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get('http://localhost:5005/') // debug
   const loadFeedsAndPosts = (proxifiedUrl, submittedUrl) => axios.get(proxifiedUrl)
-    .then(parseXML)
-    .then((content) => getFeedsAndPosts(content, submittedUrl))
-    .then(({ feed, posts }) => {
+    .then((response) => {
+      initialState.loadingProcess.status = 'starting';
+      const content = parseXML(response);
+      const { feed, posts } = getFeedsAndPosts(content, submittedUrl);
+
       initialState.content.feeds.push(feed);
       initialState.content.posts.push(...posts);
-    })
-    .then(() => {
       state.loadingProcess.status = 'success'; // triggers render content
       state.form.status = 'sent'; // triggers render success Feedback
     });
@@ -165,8 +158,7 @@ const run = (initialState, i18nInstance) => {
     const submittedUrl = formData.get('url');
     const proxifiedUrl = proxifyUrl(submittedUrl);
     const urls = initialState.content.feeds.map(({ url }) => url);
-
-    initialState.loadingProcess.status = 'starting';
+    // initialState.loadingProcess.status = 'starting';
     state.form.status = 'sending'; // disable form
 
     // in schema.validate second arg { urls } is used for: yup.test('not-one-of')
@@ -198,6 +190,7 @@ const run = (initialState, i18nInstance) => {
 
     if (el.tagName === 'A') {
       const { id } = el.dataset;
+
       state.ui.activePostId = id;
       initialState.ui.clickedPostsIds.push(id);
     }

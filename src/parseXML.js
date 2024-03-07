@@ -8,8 +8,12 @@ export default (response) => {
     throw new Error('parseError');
   } else {
     const { children } = parsed.querySelector('channel');
-    return children;
+    const contentIterable = Array.from(children);
+
+    const title = contentIterable.find((el) => el.tagName === 'title').textContent;
+    const description = contentIterable.find((el) => el.tagName === 'description').textContent;
+    const items = contentIterable.filter((el) => el.tagName === 'item');
+
+    return { title, description, items };
   }
 };
-
-// console.log(parse('https://lorem-rss.hexlet.app/feed?unit=second'));

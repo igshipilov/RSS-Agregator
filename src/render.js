@@ -95,7 +95,7 @@ const renderMessageError = (initialState, elements, i18nInstance, path) => {
 };
 
 // Render content
-const handleProcessStatus = (elements, initialState, i18nInstance, path, value) => {
+const handleRenderContent = (elements, initialState, i18nInstance, path, value) => {
   switch (value) {
     case 'starting':
       break;
@@ -112,7 +112,6 @@ const handleProcessStatus = (elements, initialState, i18nInstance, path, value) 
 
     case 'uploadError':
       renderMessageError(initialState, elements, i18nInstance, path);
-
       break;
 
     default:
@@ -129,8 +128,7 @@ const renderMessageSuccess = (elements, i18nInstance) => {
   elements.textFeedback.textContent = i18nInstance.t('feedback.success');
 };
 
-// Render messages: success and errors
-const handleFormStatus = (elements, initialState, i18nInstance, path, value) => {
+const handleRenderMessages = (elements, initialState, i18nInstance, path, value) => {
   switch (value) {
     case 'sending':
       break;
@@ -166,11 +164,11 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
   // console.log(path);
   switch (path) {
     case 'loadingProcess.status':
-      handleProcessStatus(elements, initialState, i18nInstance, path, value);
+      handleRenderContent(elements, initialState, i18nInstance, path, value);
       break;
 
     case 'form.status':
-      handleFormStatus(elements, initialState, i18nInstance, path, value);
+      handleRenderMessages(elements, initialState, i18nInstance, path, value);
       break;
 
     case 'ui.activePostId':
