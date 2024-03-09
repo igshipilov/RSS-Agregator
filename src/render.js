@@ -136,7 +136,7 @@ const handleFormRender = (elements, initialState, i18nInstance, path, value) => 
 
     default:
       toggleFormDisable(elements);
-      throw new Error(`Unknown value: ${value}`);
+      break;
   }
 };
 
@@ -155,7 +155,7 @@ const handleRenderMessages = (elements, initialState, i18nInstance, path, value)
       break;
 
     default:
-      throw new Error(`Unknown value: ${value}`);
+      break;
   }
 };
 
@@ -204,6 +204,6 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
       break;
 
     default:
-      throw new Error(`Unknown path: ${path}`);
+      break;
   }
 };
