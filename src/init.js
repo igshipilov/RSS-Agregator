@@ -42,28 +42,25 @@ const run = (initialState, i18nInstance) => {
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
   const getFeedsAndPosts = (content, url) => {
-    const { title: feedTitle, description: feedDescription, items } = content;
+    const { channelTitle: title, channelDescription: description, items } = content;
     const feedId = _.uniqueId();
 
     const feed = {
-      title: feedTitle,
-      description: feedDescription,
+      title,
+      description,
       id: feedId,
       url,
     };
 
-    const postsInit = [...items].map((item) => {
-      const title = item.querySelector('title').textContent;
-      const link = item.querySelector('link').textContent;
-      const description = item.querySelector('description').textContent;
+    const initialPosts = items.map((item) => {
       const id = _.uniqueId();
+      item.id = id;
+      item.feedId = feedId;
 
-      return {
-        title, link, description, id, feedId,
-      };
+      return item;
     });
 
-    const posts = postsInit.reverse();
+    const posts = initialPosts.reverse();
 
     return { feed, posts };
   };

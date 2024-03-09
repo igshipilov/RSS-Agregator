@@ -10,10 +10,20 @@ export default (response) => {
     const { children } = parsed.querySelector('channel');
     const contentIterable = Array.from(children);
 
-    const title = contentIterable.find((el) => el.tagName === 'title').textContent;
-    const description = contentIterable.find((el) => el.tagName === 'description').textContent;
-    const items = contentIterable.filter((el) => el.tagName === 'item');
+    // return { ...getChannel(contentIterable), getItems(contentIterable) }
 
-    return { title, description, items };
+    const channelTitle = contentIterable.find((el) => el.tagName === 'title').textContent;
+    const channelDescription = contentIterable.find((el) => el.tagName === 'description').textContent;
+    const itemsXML = contentIterable.filter((el) => el.tagName === 'item');
+
+    const items = [...itemsXML].map((item) => {
+      const title = item.querySelector('title').textContent;
+      const link = item.querySelector('link').textContent;
+      const description = item.querySelector('description').textContent;
+
+      return { title, link, description };
+    });
+
+    return { channelTitle, channelDescription, items };
   }
 };
