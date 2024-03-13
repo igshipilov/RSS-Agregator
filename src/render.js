@@ -104,7 +104,7 @@ const renderMessageSuccess = (elements, i18nInstance) => {
   elements.textFeedback.textContent = i18nInstance.t('feedback.success');
 };
 
-// TODO
+// TODO 
 // const renderMessageLoading = (elements, i18nInstance) => {
 //   elements.input.classList.remove('is-invalid');
 //   elements.textFeedback.classList.remove('text-danger', 'text-success');
