@@ -8,6 +8,8 @@
 </head>
 
 <body>
+
+
     <div class="modal fade" id="modal" tabindex="-1" role="dialog" aria-labelledby="modal" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -18,7 +20,7 @@
                 <div class="modal-body text-break"></div>
                 <div class="modal-footer">
                     <a class="btn btn-primary full-article" href="#" role="button" target="_blank"
-                        rel="noopener noreferrer">Читать полностью </a><button type="button" class="btn btn-secondary"
+                        rel="noopener noreferrer">Читать полностью </a><button type="button" class="btn btn-secondary close-article"
                         data-bs-dismiss="modal">
                         Закрыть
                     </button>
@@ -27,7 +29,20 @@
         </div>
     </div>
     <main class="flex-grow-1">
-        <section class="container-fluid bg-dark p-5">
+        <section class="container-fluid bg-dark p-5 position-relative">
+
+            <!-- Change language -->
+            <div class="dropdown position-absolute top-0 start-0" id="language">
+                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Dropdown button
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item dropdown-language" data-value="ru" href="#">Русский</a></li>
+                    <li><a class="dropdown-item dropdown-language" data-value="en" href="#">English</a></li>
+                </ul>
+            </div>
+            <!-- ---------------- -->
+
             <div class="row">
                 <div class="col-md-10 col-lg-8 mx-auto text-white">
                     <h1 class="display-3 mb-0">RSS агрегатор</h1>

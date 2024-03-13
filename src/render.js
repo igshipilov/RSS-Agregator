@@ -76,6 +76,7 @@ const renderPosts = (posts, initialState, i18nInstance) => {
     button.setAttribute('data-id', `${id}`);
     button.setAttribute('data-bs-toggle', 'modal');
     button.setAttribute('data-bs-target', '#modal');
+    button.setAttribute('data-name', 'view');
 
     titleElement.textContent = title;
     button.textContent = i18nInstance.t('buttons.view');
@@ -89,16 +90,16 @@ const renderMessageError = (initialState, elements, i18nInstance, path) => {
   const currentProcess = path.replace('.status', '');
   const errorCode = initialState[currentProcess].error;
 
-  elements.input.classList.add('is-invalid');
+  elements.mainInterface.input.classList.add('is-invalid');
   elements.textFeedback.classList.remove('text-success');
   elements.textFeedback.classList.add('text-danger');
   elements.textFeedback.textContent = i18nInstance.t(errorCode);
 };
 
 const renderMessageSuccess = (elements, i18nInstance) => {
-  elements.input.classList.remove('is-invalid');
+  elements.mainInterface.input.classList.remove('is-invalid');
   elements.form.reset();
-  elements.input.focus();
+  elements.mainInterface.input.focus();
   elements.textFeedback.classList.remove('text-danger');
   elements.textFeedback.classList.add('text-success');
   elements.textFeedback.textContent = i18nInstance.t('feedback.success');
@@ -106,14 +107,14 @@ const renderMessageSuccess = (elements, i18nInstance) => {
 
 // TODO
 // const renderMessageLoading = (elements, i18nInstance) => {
-//   elements.input.classList.remove('is-invalid');
+//   elements.mainInterface.input.classList.remove('is-invalid');
 //   elements.textFeedback.classList.remove('text-danger', 'text-success');
 //   elements.textFeedback.textContent = i18nInstance.t('feedback.loading');
 // };
 
 const toggleFormDisable = (elements) => {
   const button = elements.buttons.add;
-  const { input } = elements;
+  const { input } = elements.mainInterface;
 
   button.toggleAttribute('disabled');
   input.toggleAttribute('readonly');
@@ -201,6 +202,41 @@ export default (elements, initialState, i18nInstance) => (path, value) => {
     case 'content.posts':
       cleanContentAndRenderTitles(elements, i18nInstance, path);
       renderPosts(initialState.content.posts, initialState, i18nInstance);
+      break;
+
+    case 'lng':
+      // TODO в i18next.t() вместо `buttons...` и `mainInterface` надо подставлять подходящее имя.
+      // Могу ли я взять имя из названия константы объекта?
+
+      const changeLanguage = (els, category) => {
+        Object.keys(els).forEach((el) => {
+          try {
+            const hasTextContent = !!els[el].textContent;
+            if (hasTextContent) {
+              els[el].textContent = i18nInstance.t(`${category}.${el}`); // FIXME (см. TODO выше)
+            }
+          } catch (err) { console.error(err) }
+        });
+      };
+
+      const viewButtons = document.querySelectorAll('[data-name="view"]');
+
+      const feedsTitle = document.querySelector('.feeds > .card > .card-body > .card-title');
+      const postsTitle = document.querySelector('.posts > .card > .card-body > .card-title');
+
+      const buttons = { ...viewButtons, ...elements.buttons };
+      const mainInterface = elements.mainInterface;
+      const feedsAndPostsTitles = { feedsTitle, postsTitle };
+
+      const mapping = {
+        mainInterface: changeLanguage(mainInterface, 'mainInterface'),
+        buttons: changeLanguage(buttons, 'buttons'),
+        feedsAndPostsTitles: changeLanguage(feedsAndPostsTitles, 'feedsAndPostsTitles'),
+      }
+
+      mapping['mainInterface'];
+      mapping['buttons'];
+      mapping['feedsAndPostsTitles']; // TODO внутри i18next перенести postsTitle и feedsTitle в отдельную группу
       break;
 
     default:

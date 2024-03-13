@@ -16,14 +16,15 @@ const run = (initialState, i18nInstance) => {
       title: document.querySelector('.display-3'),
       subtitle: document.querySelector('.lead'),
       formPlaceholder: document.querySelector('[for="url-input"]'),
-      postsTitle: document.querySelector('.posts > div > div > h2'),
-      feedsTitle: document.querySelector('.feeds > div > div > h2'),
+      input: document.querySelector('#url-input'),
     },
     buttons: {
       add: document.querySelector('[aria-label="add"]'),
+      lng: document.querySelectorAll('.dropdown-language'),
+      readFullArticle: document.querySelector('.full-article'),
+      closeArticle: document.querySelector('.close-article'),
     },
     form: document.querySelector('.rss-form'),
-    input: document.querySelector('#url-input'),
     textHint: document.querySelector('.text-muted'),
     textFeedback: document.querySelector('.feedback'),
     content: {
@@ -38,6 +39,25 @@ const run = (initialState, i18nInstance) => {
       fullArticle: document.querySelector('.full-article'),
     },
   };
+
+  const languages = elements.buttons.lng;
+  // // console.log(language);
+
+  languages.forEach((language) => language.addEventListener('click', (e) => {
+    const target = e.target;
+    const { value } = target.dataset;
+    // console.log(value);
+
+    // state.lng = value;
+    i18nInstance.changeLanguage(value);
+  }))
+  
+  // i18nInstance.on('languageChanged', (lng) => {
+  //   initialState.lng = lng;
+  //   run(initialState, i18nInstance)
+  // } );
+  i18nInstance.on('languageChanged', (lng) => state.lng = lng);
+
 
   const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
@@ -177,6 +197,8 @@ const run = (initialState, i18nInstance) => {
   });
 };
 
+
+
 export default () => {
   const defaultLanguage = 'ru';
 
@@ -207,4 +229,5 @@ export default () => {
     debug: false,
     resources,
   }).then(run(initialState, i18nInstance));
+
 };
