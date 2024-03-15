@@ -93,9 +93,11 @@ const renderMessageSuccess = (elements, i18nInstance) => {
 const toggleFormDisable = (elements) => {
   const button = elements.buttons.add;
   const { input } = elements.mainInterface;
+  const { spinner } = elements.ui;
 
   button.toggleAttribute('disabled');
   input.toggleAttribute('readonly');
+  spinner.classList.toggle('visually-hidden');
 };
 
 const handleFormRender = (
@@ -207,19 +209,21 @@ const changeLanguageOnPage = (elements, initialState, i18nInstance, value) => {
   elements.mainInterface.formPlaceholder.textContent = i18nInstance.t('mainInterface.formPlaceholder');
   translateTextExample(elements, i18nInstance);
 
-  elements.buttons.add.textContent = i18nInstance.t('buttons.add');
-  elements.buttons.add.textContent = i18nInstance.t('buttons.add');
+  // elements.buttons.add.textContent = i18nInstance.t('buttons.add');
+
+  const buttonAdd = elements.buttons.add;
+  const buttonAddText = buttonAdd.childNodes[2];
+  buttonAddText.textContent = i18nInstance.t('buttons.add');
+
   elements.buttons.readFullArticle.textContent = i18nInstance.t('buttons.readFullArticle');
   elements.buttons.closeArticle.textContent = i18nInstance.t('buttons.closeArticle');
   elements.buttons.changeLanguage.textContent = value.toUpperCase();
 
   // TODO выяснить, какой сейчас фидбек: успех или ошибка, и если ошибка, то чья?
   // На основе этого отрендерить соответствующий фидбек на текущем языке
-  const feedback = document.querySelector('.feedback');
-  if (feedback.textContent) {
-    console.log(feedback);
-    // feedback.textContent =
-  }
+  // const feedback = document.querySelector('.feedback');
+  // if (feedback.textContent) {
+  // }
 
   const wasFeedsAdded = !!initialState.content.feeds.length;
   if (wasFeedsAdded) {

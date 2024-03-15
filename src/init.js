@@ -20,7 +20,7 @@ const run = (initialState, i18nInstance) => {
       example: document.querySelector('#example'),
     },
     buttons: {
-      add: document.querySelector('[aria-label="add"]'),
+      add: document.querySelector('#button-add'),
       changeLanguage: document.querySelector('#change-language'),
       lng: document.querySelectorAll('.dropdown-language'),
       readFullArticle: document.querySelector('.full-article'),
@@ -39,6 +39,9 @@ const run = (initialState, i18nInstance) => {
       title: document.querySelector('.modal-title'),
       body: document.querySelector('.modal-body'),
       fullArticle: document.querySelector('.full-article'),
+    },
+    ui: {
+      spinner: document.querySelector('#spinner'),
     },
   };
 
