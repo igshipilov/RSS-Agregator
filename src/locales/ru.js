@@ -8,9 +8,8 @@ export default {
       title: 'RSS агрегатор',
       subtitle: 'Начните читать RSS сегодня! Это легко, это красиво.',
       formPlaceholder: 'Ссылка RSS',
-      postsTitle: 'Посты',
-      feedsTitle: 'Фиды',
       loading: 'RSS загружается...',
+      example: 'Пример',
     },
 
     buttons: {
@@ -20,7 +19,12 @@ export default {
       readFullArticle: 'Читать полностью',
       closeArticle: 'Закрыть',
     },
-    
+
+    titles: {
+      postsTitle: 'Посты',
+      feedsTitle: 'Фиды',
+    },
+
     feedback: {
       urlAlreadyExists: 'RSS уже существует',
       invalidUrl: 'Ссылка должна быть валидным URL',

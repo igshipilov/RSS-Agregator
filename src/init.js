@@ -15,11 +15,13 @@ const run = (initialState, i18nInstance) => {
     mainInterface: {
       title: document.querySelector('.display-3'),
       subtitle: document.querySelector('.lead'),
-      formPlaceholder: document.querySelector('[for="url-input"]'),
+      formPlaceholder: document.querySelector('[for="url-input"'),
       input: document.querySelector('#url-input'),
+      example: document.querySelector('#example'),
     },
     buttons: {
       add: document.querySelector('[aria-label="add"]'),
+      changeLanguage: document.querySelector('#change-language'),
       lng: document.querySelectorAll('.dropdown-language'),
       readFullArticle: document.querySelector('.full-article'),
       closeArticle: document.querySelector('.close-article'),
@@ -40,26 +42,17 @@ const run = (initialState, i18nInstance) => {
     },
   };
 
+  const state = onChange(initialState, render(elements, initialState, i18nInstance));
+
   const languages = elements.buttons.lng;
-  // // console.log(language);
 
   languages.forEach((language) => language.addEventListener('click', (e) => {
-    const target = e.target;
+    const { target } = e;
     const { value } = target.dataset;
-    // console.log(value);
-
-    // state.lng = value;
     i18nInstance.changeLanguage(value);
-  }))
-  
-  // i18nInstance.on('languageChanged', (lng) => {
-  //   initialState.lng = lng;
-  //   run(initialState, i18nInstance)
-  // } );
+  }));
+
   i18nInstance.on('languageChanged', (lng) => state.lng = lng);
-
-
-  const state = onChange(initialState, render(elements, initialState, i18nInstance));
 
   const getFeedsAndPosts = (content, url) => {
     const { channelTitle: title, channelDescription: description, items } = content;
@@ -197,8 +190,6 @@ const run = (initialState, i18nInstance) => {
   });
 };
 
-
-
 export default () => {
   const defaultLanguage = 'ru';
 
@@ -229,5 +220,4 @@ export default () => {
     debug: false,
     resources,
   }).then(run(initialState, i18nInstance));
-
 };

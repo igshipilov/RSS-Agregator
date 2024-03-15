@@ -3,14 +3,13 @@ export default {
     languages: {
       ru: 'English',
     },
-    
+
     mainInterface: {
       title: 'RSS aggregator',
       subtitle: "Start reading RSS today! It's simple, it's beautiful.",
       formPlaceholder: 'RSS Link',
-      postsTitle: 'Posts',
-      feedsTitle: 'Feeds',
       loading: 'RSS is loading...',
+      example: 'Example',
     },
 
     buttons: {
@@ -19,6 +18,11 @@ export default {
       lng: 'en',
       readFullArticle: 'Read full article',
       closeArticle: 'Close',
+    },
+
+    titles: {
+      postsTitle: 'Posts',
+      feedsTitle: 'Feeds',
     },
 
     feedback: {
