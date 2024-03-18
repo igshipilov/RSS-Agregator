@@ -39,14 +39,6 @@ const config = {
         test: /\.(ttf|eot|svg)(\?[\s\S]+)?$/,
         type: 'asset/resource',
       },
-      // {
-      //   test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-      //   use: 'url-loader?limit=10000',
-      // },
-      // {
-      //   test: /\.(ttf|eot|svg)(\?[\s\S]+)?$/,
-      //   use: 'file-loader',
-      // },
     ],
   },
 };

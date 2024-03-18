@@ -1,6 +1,9 @@
 develop:
 	npx webpack serve
 
+preview:
+	npm run preview
+
 install:
 	npm ci
 
