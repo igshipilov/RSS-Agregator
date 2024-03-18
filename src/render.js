@@ -209,9 +209,11 @@ const changeLanguageOnPage = (elements, initialState, i18nInstance, value) => {
   elements.mainInterface.formPlaceholder.textContent = i18nInstance.t('mainInterface.formPlaceholder');
   translateTextExample(elements, i18nInstance);
 
-  const buttonAdd = elements.buttons.add;
-  const buttonAddText = buttonAdd.childNodes[2];
-  buttonAddText.textContent = i18nInstance.t('buttons.add');
+  // const buttonAdd = elements.buttons.add;
+  // const buttonAddText = buttonAdd.childNodes[2];
+  // buttonAddText.textContent = i18nInstance.t('buttons.add');
+
+  elements.buttons.add.innerText = i18nInstance.t('buttons.add');
 
   elements.buttons.readFullArticle.textContent = i18nInstance.t('buttons.readFullArticle');
   elements.buttons.closeArticle.textContent = i18nInstance.t('buttons.closeArticle');
